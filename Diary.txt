@@ -1,0 +1,62 @@
+2017-09-18
+C++内存优化技巧
+union
+{
+	// 定义多个互斥struct
+	struct A
+	{
+	};
+	struct B
+	{
+	};
+	//......
+};
+2017-09-19
+C++11 for
+int ary[] = {1,3,1,4,};
+for(int nData : ary)
+{
+	printf("%d\n", nData);
+}
+
+for(int &nData : ary)
+{
+	nData = 0;
+	printf("%d\n", nData);
+}
+
+// 注意auto类型不是int
+std::vector<int> vec;
+vec.push_back(1); vec.push_back(3); vec.push_back(1); vec.push_back(4);
+
+for(auto nData : vec)
+{
+	printf("%d\n", nData);
+}
+
+for(int nData : vec)
+{
+	printf("%d\n", nData);
+}
+
+for(auto &it : vec)
+{
+	it = 0;
+	printf("%d\n", it);
+}
+
+std::map<int, int> map;
+map.insert(std::pair<int, int>(10, 10));
+
+// 注意auto类型std::map<int, int>::value_type即std::pair<int, int>
+for(auto pair : map)
+{
+	printf("%d %d\n", pair.first, pair.second);
+}
+
+for(std::map<int, int>::value_type pair : map)
+{
+	printf("%d %d\n", pair.first, pair.second);
+}
+
+//所以for(auto it : container) 中 auto类型为container元素类型而非迭代器
