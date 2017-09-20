@@ -1,5 +1,4 @@
-2017-09-18
-C++内存优化技巧
+【2017-09-18】C++内存优化技巧
 union
 {
 	// 定义多个互斥struct
@@ -11,8 +10,7 @@ union
 	};
 	//......
 };
-2017-09-19
-C++11 for
+【2017-09-19】【1】C++11 新for
 int ary[] = {1,3,1,4,};
 for(int nData : ary)
 {
@@ -60,3 +58,53 @@ for(std::map<int, int>::value_type pair : map)
 }
 
 //所以for(auto it : container) 中 auto类型为container元素类型而非迭代器
+【2017-09-19】【2】umdh查内存泄漏
+1.首先安装好WinDbg
+2.然后用任务管理员权限打开cmd
+3.cd到WinDbg目录
+4.执行 set _NT_SYMBOL_PATH="%windir%\symbols";AppPath目标程序符号文件位置;
+5.打开App.exe
+6.执行 gflags -i App.exe +ust (App为已经开启的进程 成功执行后屏幕会输出一些东西)
+7.执行 umdh.exe -pn:App.exe -f:D:/Output/FirstDump.txt
+8.继续运行App.exe执行一些操作
+9.执行 umdh.exe -pn:App.exe -f:D:/Output/SecondDump.txt
+10.执行 umdh.exe D:/Output/FirstDump.txt D:/Output/SecondDump.txt -f:D:/Output/Result.txt
+11.Profile结果在Result.txt里
+
+【2017-09-20】内存泄漏检查
+// http://blog.csdn.net/bluehawksky/article/details/39841975
+// http://www.cnblogs.com/findumars/p/5353538.html
+// http://www.cnblogs.com/skynet/archive/2011/02/20/1959162.html
+#ifdef MEMORY_DUMP_DEBUG
+
+#	ifdef _WIN32
+#		define _CRTDBG_MAP_ALLOC
+#		include <stdlib.h>
+#		include <crtdbg.h>
+//	Node: _CrtDumpMemoryLeaks();是在出口处检测内存泄漏
+
+//	开始检测内存泄漏
+//	DUMP_MEMORY_LEAK_BEGIN开始跟踪内存分配
+#	define DUMP_MEMORY_LEAK_BEGIN() {_CrtSetDbgFlag (_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);}
+//	结束检测内存泄漏 慎用
+//	DUMP_MEMORY_LEAK_END是清空内存分配跟踪 如果内存泄漏在DUMP_MEMORY_LEAK_BEGIN和DUMP_MEMORY_LEAK_END之间是不会检测出来的
+#	define DUMP_MEMORY_LEAK_END() {_CrtSetDbgFlag(0);}
+#	define DUMP_MEMORY_STATUS() {_CrtMemState s; _CrtMemCheckpoint(&s); _CrtMemDumpStatistics(&s);}
+
+#	else
+//	https://en.wikipedia.org/wiki/Mtrace
+#	include <stdlib.h>
+#	include <mcheck.h>
+#	define DUMP_MEMORY_LEAK_BEGIN() {mtrace();}
+#	define DUMP_MEMORY_LEAK_END() {muntrace();}
+#	define DUMP_MEMORY_STATUS()
+
+#	endif
+
+#else
+
+#	define DUMP_MEMORY_LEAK_BEGIN()
+#	define DUMP_MEMORY_LEAK_END()
+#	define DUMP_MEMORY_STATUS()
+
+#endif//MEMORY_DUMP_DEBUG
