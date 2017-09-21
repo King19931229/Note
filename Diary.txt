@@ -81,14 +81,13 @@ for(std::map<int, int>::value_type pair : map)
 #		define _CRTDBG_MAP_ALLOC
 #		include <stdlib.h>
 #		include <crtdbg.h>
-//	Node: _CrtDumpMemoryLeaks();是在出口处检测内存泄漏
 
 //	开始检测内存泄漏
 //	DUMP_MEMORY_LEAK_BEGIN开始跟踪内存分配
 #	define DUMP_MEMORY_LEAK_BEGIN() {_CrtSetDbgFlag (_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);}
-//	结束检测内存泄漏 慎用
-//	DUMP_MEMORY_LEAK_END是清空内存分配跟踪 如果内存泄漏在DUMP_MEMORY_LEAK_BEGIN和DUMP_MEMORY_LEAK_END之间是不会检测出来的
-#	define DUMP_MEMORY_LEAK_END() {_CrtSetDbgFlag(0);}
+//	结束检测内存泄漏
+//	DUMP_MEMORY_LEAK_END是清空内存分配跟踪
+#	define DUMP_MEMORY_LEAK_END() {_CrtDumpMemoryLeaks(); _CrtSetDbgFlag(0);}
 #	define DUMP_MEMORY_STATUS() {_CrtMemState s; _CrtMemCheckpoint(&s); _CrtMemDumpStatistics(&s);}
 
 #	else
@@ -108,3 +107,21 @@ for(std::map<int, int>::value_type pair : map)
 #	define DUMP_MEMORY_STATUS()
 
 #endif//MEMORY_DUMP_DEBUG
+【2017-09-21】【1】命令队列
+如果一个方法要加入命令队列然后轮询
+但是方法未执行时调用者不能返回 必须阻塞等待
+这时候可以用信号量解决
+Sem sem;
+CommandList.push([&sem](/*...*/)
+{
+	//DoSomWork
+	sem.Notify();
+}
+sem.Wait();
+【2017-09-21】【2】状态转移
+CAS做状态转移
+atomic state;
+if(state.cas(exp, tar))
+{
+	//状态转移成功
+}
