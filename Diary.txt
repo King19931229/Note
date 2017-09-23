@@ -125,3 +125,40 @@ if(state.cas(exp, tar))
 {
 	//状态转移成功
 }
+【2017-09-22】【1】回顾operator new
+// 覆盖全局operator new
+void *operator new(size_t size)
+{
+	return malloc(size);
+}
+void operator delete(void* p)
+{
+	free(p);
+}
+// 覆盖全局operator new[]
+void *operator new[](size_t size)
+{
+	return malloc(size);
+}
+void operator delete[](void* p)
+{
+	free(p);
+}
+
+// placement new
+void *operator new(size_t size, /*用户自定义参数*/void* pMemory, int nLine, const char* pFileName)
+{
+	printf("%d %s\n", nLine, pFileName);
+	return pMemory;
+}
+
+void* p = operator new(sizeof(int));// new int;
+int *newPtr = new(p, __LINE__, __FILE__) int;
+语法: ptr = new (参数表) 构造函数
+【2017-09-22】【2】宏定义# ##
+#define TOSTR(x) #x //量化为字符串
+#define LINK_X_Y(x, y) x##y //宏连接
+
+puts(TOSTR(100));// 100
+puts(LINK_X_Y(TOSTR(12), TOSTR(34))); //1234
+puts(TOSTR(LINK_X_Y(56, 78))); // LINK_X_Y(56, 78) 直接把#后面的变成字符串了
