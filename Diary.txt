@@ -10,6 +10,7 @@ union
 	};
 	//......
 };
+
 【2017-09-19】【1】C++11 新for
 int ary[] = {1,3,1,4,};
 for(int nData : ary)
@@ -58,6 +59,7 @@ for(std::map<int, int>::value_type pair : map)
 }
 
 //所以for(auto it : container) 中 auto类型为container元素类型而非迭代器
+
 【2017-09-19】【2】umdh查内存泄漏
 1.首先安装好WinDbg
 2.然后用任务管理员权限打开cmd
@@ -118,6 +120,7 @@ CommandList.push([&sem](/*...*/)
 	sem.Notify();
 }
 sem.Wait();
+
 【2017-09-21】【2】状态转移
 CAS做状态转移
 atomic state;
@@ -125,6 +128,7 @@ if(state.cas(exp, tar))
 {
 	//状态转移成功
 }
+
 【2017-09-22】【1】回顾operator new
 // 覆盖全局operator new
 void *operator new(size_t size)
@@ -162,3 +166,18 @@ int *newPtr = new(p, __LINE__, __FILE__) int;
 puts(TOSTR(100));// 100
 puts(LINK_X_Y(TOSTR(12), TOSTR(34))); //1234
 puts(TOSTR(LINK_X_Y(56, 78))); // LINK_X_Y(56, 78) 直接把#后面的变成字符串了
+
+【2017-09-25】函数修饰
+__stdcall 约定被调用函数负责对函数参数退栈 Windows回调函数只能使用该约定
+__cdecl 约定调用者负责函数参数退栈 因此可变函数参数只能使用该约定
+C和C++默认约定是__cdecl
+
+可以这样检测默认约定
+int __cdecl add(int a, int b);
+int add(int a, int b)
+{
+    return a + b;
+}
+IDE提示出错-->默认约定是__cdecl
+主要如果使用__stdcall要保证声明与实现都有__stdcall标志
+还有约定函数指针时也要注意匹配
