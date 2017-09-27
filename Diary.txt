@@ -181,3 +181,69 @@ int add(int a, int b)
 IDE提示出错-->默认约定是__cdecl
 主要如果使用__stdcall要保证声明与实现都有__stdcall标志
 还有约定函数指针时也要注意匹配
+
+【2017-09-26】C++ inl文件
+http://blog.csdn.net/business122/article/details/9770019
+内联函数和模版的声明和定义必须放在一起
+但是如果数量太多影响阅读 可以把实现抽出来放到inl文件里
+然后头文件在结尾include该inl文件
+
+【2017-09-26】C++ 命名空间
+namespace
+{
+	void Test()
+	{
+		puts("namespace");
+	}
+}
+void Test()
+{
+	puts("global");
+}
+int main()
+{
+	/*
+	Test();
+	error C2668: “Test”: 对重载函数的调用不明确
+	: 可能是“void Test(void)”
+	: 或       “void `anonymous-namespace'::Test(void)”
+	尝试匹配参数列表“(void)”时
+	*/
+	::Test();//输出global
+}
+
+【2017-09-27】#pragma push_macro #pragma pop_macro
+//http://blog.csdn.net/ixsea/article/details/7976627
+>1.
+#define int double
+	printf("%d\n", sizeof(int)); // 8
+#pragma push_macro("int")// 将int的定义入栈
+#undef int // 取消该宏定义
+	printf("%d\n", sizeof(int)); // 4
+#pragma pop_macro("int")// 恢复入栈前int的定义
+	printf("%d\n", sizeof(int)); // 8
+
+#pragma push_macro("int")
+	printf("%d\n", sizeof(int)); // 8
+#pragma pop_macro("int")
+>2.
+#define A 1
+#define B 2
+
+#pragma push_macro("A")
+#pragma push_macro("B")
+#pragma pop_macro("A")
+#pragma pop_macro("B")
+
+printf("%d %d\n", A, B);// 1 2
+所以入栈 出栈是独立的
+>3.
+在三方库源码中，我们经常看到这样的代码：
+#pragma push_macro("new")
+#undef new
+// do something with new
+......
+#pragma pop_macro("new")
+它的作用就是将宏定义new压入栈并取消它的定义
+如此一来new的本来含义便获得了恢复
+使用完毕后将宏定义new弹出栈 恢复宏定义
