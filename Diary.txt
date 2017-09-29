@@ -247,3 +247,73 @@ printf("%d %d\n", A, B);// 1 2
 它的作用就是将宏定义new压入栈并取消它的定义
 如此一来new的本来含义便获得了恢复
 使用完毕后将宏定义new弹出栈 恢复宏定义
+
+【2017-09-29】CMake
+# https://cmake.org/cmake/help/v3.9/
+>1.备注
+# This is a CMake comment
+或者
+#[[This is a CMake\
+comment]]
+
+>2.输出
+# https://cmake.org/cmake/help/v3.9/command/message.html?highlight=message
+message(STATUS This is a message)
+
+>3.指定版本
+cmake_minimum_required (VERSION 3.9)
+
+>4.添加引用目录
+# https://cmake.org/cmake/help/v3.9/command/include_directories.html?highlight=include_directories
+include_directories(./)
+
+>5.编译器参数 如果添加预处理宏定义要加上-D
+# https://cmake.org/cmake/help/v3.9/command/add_definitions.html?highlight=add_definitions
+# 相当于加上MEMORY_DUMP_DEBUG预处理宏
+add_definitions(-DMEMORY_DUMP_DEBUG)
+
+>6.收集目录下所有源文件并储存到变量中 注意只有源文件不含头文件
+# 相当于收集CMakeLists.txt目录下的所有源文件并储存到变量SRC中
+# 注意没有递归到各个子目录收集的功能 而且只有只有源文件不含头文件
+# 不好用
+aux_source_directory(./ SRC)
+
+>7.收集目录下所有文件并储存到变量中 不递归
+# https://cmake.org/cmake/help/v3.9/command/file.html?highlight=file
+# 相当于收集Interface下所有头文件和源文件并储存到变量ALL_FILES中
+file(GLOB ALL_FILES
+	Interface/*.h
+	Interface*.cpp
+)
+
+>8.收集目录下所有文件并储存到变量中 递归到各个子目录
+file(GLOB_RECURSE ALL_FILES
+	Interface/*.h
+	Interface*.cpp
+)
+
+>9.设置变量 注意没有通配符用法
+# https://cmake.org/cmake/help/v3.9/command/set.html?highlight=set
+# 设置变量FILETOOL_CPP
+set(FILETOOL_CPP Internal/KFileTool.cpp）
+
+>10.指定一个源文件组
+# https://cmake.org/cmake/help/v3.9/command/source_group.html?highlight=source_group
+# 添加一个源文件组Internal 并且把INTERNAL变量指定的文件添加进去
+source_group("Internal" FILES ${INTERNAL})
+
+>11.生成链接库
+# https://cmake.org/cmake/help/v3.9/command/add_library.html?highlight=add_library
+# 生成一个叫BASE的库 并且把INTERFACE INTERNAL PUBLISH指定的文件添加进去
+add_library(BASE ${INTERFACE} ${INTERNAL} ${PUBLISH})
+
+>12.指定生成目标
+# https://cmake.org/cmake/help/v3.9/command/add_executable.html?highlight=add_executable
+# 用法如同add_library 不过项目生成的是一个可执行文件
+add_executable(EXE ${INTERFACE} ${INTERNAL} ${PUBLISH})
+
+>13.添加链接库
+# https://cmake.org/cmake/help/v3.9/command/target_link_libraries.html?highlight=target_link_libraries
+# 指定对于项目EXE添加依赖库../Base/BASE
+# 注意位置要放在EXE对应的add_executable之后
+target_link_libraries(EXE ../Base/BASE)
