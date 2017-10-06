@@ -283,13 +283,13 @@ aux_source_directory(./ SRC)
 # 相当于收集Interface下所有头文件和源文件并储存到变量ALL_FILES中
 file(GLOB ALL_FILES
 	Interface/*.h
-	Interface*.cpp
+	Interface/*.cpp
 )
 
 >8.收集目录下所有文件并储存到变量中 递归到各个子目录
 file(GLOB_RECURSE ALL_FILES
 	Interface/*.h
-	Interface*.cpp
+	Interface/*.cpp
 )
 
 >9.设置变量 注意没有通配符用法
@@ -317,3 +317,40 @@ add_executable(EXE ${INTERFACE} ${INTERNAL} ${PUBLISH})
 # 指定对于项目EXE添加依赖库../Base/BASE
 # 注意位置要放在EXE对应的add_executable之后
 target_link_libraries(EXE ../Base/BASE)
+
+【2017-10-06】C++11 CAS
+C++11 CAS
+http://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange
+注意C++11中atomic的CAS操作中 【Exp】是以【引用】传入而非【常引用】
+所以标准就允许CAS操作后【Exp】被修改
+VS2012下CAS后【Exp】就有被修改的可能
+
+【2017-10-06】批量修改文件编码
+1.安装Python
+2.在Notepad++插件管理器里下载Python Script
+3.选择Plugins->Python Script->New script把ToUTF8.py添加进去
+4.在ToUTF8.py修改转换路径
+5.重启Notepad++
+6.选择Plugins->Python Script->ToUTF8
+
+ToUTF8.py
+import os;
+import sys; 
+filePathSrc="D:\\KApp\\" # Path to the folder with files to convert 
+for root, dirs, files in os.walk(filePathSrc): 
+    for fn in files:
+        if fn[-4:] == '.cpp':
+            notepad.open(root + "\\" + fn) 
+            notepad.runMenuCommand("Encoding", "Convert to UTF-8")
+            notepad.save()
+            notepad.close()
+        elif fn[-2:] == '.c':
+             notepad.open(root + "\\" + fn) 
+             notepad.runMenuCommand("Encoding", "Convert to UTF-8")
+             notepad.save()
+             notepad.close()
+        elif fn[-2:] == '.h':
+             notepad.open(root + "\\" + fn) 
+             notepad.runMenuCommand("Encoding", "Convert to UTF-8")
+             notepad.save()
+             notepad.close()
