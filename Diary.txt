@@ -354,3 +354,14 @@ for root, dirs, files in os.walk(filePathSrc):
              notepad.runMenuCommand("Encoding", "Convert to UTF-8")
              notepad.save()
              notepad.close()
+
+【2017-11-07】ID3D11DeviceContext::Map method
+https://msdn.microsoft.com/en-us/library/windows/desktop/ff476457(v=vs.85).aspx
+Don't read from a subresource mapped for writing
+When you pass D3D11_MAP_WRITE, D3D11_MAP_WRITE_DISCARD,
+or D3D11_MAP_WRITE_NO_OVERWRITE to the MapType parameter,
+you must ensure that your app does not read the subresource
+data to which the pData member of D3D11_MAPPED_SUBRESOURCE
+points because doing so can cause a significant performance penalty.
+The memory region to which pData points can be allocated with PAGE_WRITECOMBINE,
+and your app must honor all restrictions that are associated with such memory.
