@@ -365,3 +365,20 @@ data to which the pData member of D3D11_MAPPED_SUBRESOURCE
 points because doing so can cause a significant performance penalty.
 The memory region to which pData points can be allocated with PAGE_WRITECOMBINE,
 and your app must honor all restrictions that are associated with such memory.
+
+【2017-12-07】DX11 Map
+1.在AMD RX 390下申请一个2M的Usage为D3D11_USAGE_DYNAMIC Buffer
+并且用D3D11_MAP_WRITE_DISCARD 去Map会导致很卡
+把Buffer大小改为512K后问题消失
+2.Usage为D3D11_USAGE_DEFAULT的Buffer只能用UpdateSubresource
+更新数据 背后原理是自动申请一个Buffer然后填充完这个临时的
+Buffer后拷贝到被Update的Buffer上
+
+【2017-12-21】字符编码
+1.ANSI 是对应当前系统locale的遗留(legacy)编码
+(通常使用 0x00~0x7f 1个字节来表示1个英文字符
+为使计算机支持更多语言 通常使用 0x80~0xFFFF 范围的2个字节来表示1个字符
+不同的国家和地区制定了不同的标准 由此产生了 GB2312 GBK GB18030 Big5
+Shift_JIS 等各自的编码标准)
+2.Unicode 带有 BOM 的小端序 UTF-16
+3.UTF-8 Windows下是带BOM的UTF-8
