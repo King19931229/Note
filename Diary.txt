@@ -387,7 +387,7 @@ Shift_JIS 等各自的编码标准)
 如果头两个字节是FF FE就表示该文件采用小头方式)
 3.UTF-8 Windows下是带BOM的UTF-8
 
-【2017年12月21日】【2】Sublime Text 3配置Python2编译环境
+【2017年12-21】【2】Sublime Text 3配置Python2编译环境
 1.首先在环境变量里的path加上Python2的安装路径
 2.在工具->编译系统->新建编译系统
 用以下代码替代默认代码
@@ -399,3 +399,78 @@ Shift_JIS 等各自的编码标准)
 "cmd": ["Python安装路径","-u","$file"]
 3.保存名字为python2.sublime-build注意扩展名要为.sublime-build才能被
 Sublime记住
+
+【2017-12-21】【3】Python迭代技巧
+array = [1, 2, 3]
+for i in range(len(array)):
+	print i
+# range 返回一个列表 [0, 1, 2]
+# http://www.runoob.com/python/python-func-range.html
+python range() 函数可创建一个整数列表，一般用在 for 循环中。
+函数语法
+range(start, stop[, step])
+参数说明：
+start: 计数从 start 开始 默认是从 0 开始 例如range(5) 等价于range(0, 5)
+end: 计数到 end 结束，但不包括 end 例如: range(0, 5) 是[0, 1, 2, 3, 4]没有5
+step：步长，默认为1 例如：range(0, 5) 等价于 range(0, 5, 1)
+
+【2017-12-22】【1】Python索引和分片
+>例子1: 构造回文数
+def func(res, idx, first):
+	if idx < 0:
+		# res[::-1]反转字符串 默认指定开始索引为-1
+		revstr = res[::-1]
+		# 从索引为1开始截断字符串
+		# res += revstr[1:len(revstr)]
+		res += revstr[1:]
+		print res
+		return
+	for k in range(first, 10):
+		func(res + str(k), idx - 1, 0)
+
+for i in range(1, 3):
+	func('', i, 1)
+
+>例子2: 列表操作
+list = ['0', '1', '2']
+
+# 0为开始索引
+print list[0:] # ['0', '1', '2']
+# 3为结束索引不包括
+print list[0:3] # ['0', '1', '2']
+# 1为步长
+print list[0:3:1] # ['0', '1', '2']
+print list[0:3:2] # ['0', '2']
+# -1为开始索引
+print list[-1::] # ['2']
+# 第二个-1为步长
+print list[-1::-1] # ['2', '1', '0']
+print list[-1::-2] # ['2', '0']
+print list[-2::-1] # ['1', '0']
+# TODO: 反转访问无法指定结束索引
+
+【2017-12-22】【2】Python lambda
+lambda表达式只能写在同一行
+不过可以用\进行分割
+SUM = lambda a, b:\
+a + b
+print SUM(10, 20)
+
+【2017-12-22】【3】Python对象比较
+a = 1
+b = 2
+# a, b 是否同一个对象
+print a == b # False
+b -= 1
+print a == b # True
+# 对a, b 进行值比较
+print cmp(a, b) # 0
+
+【2017-12-22】【3】Python赋值
+# 与C++不同 等号赋值语句右部分只是值的快照
+a, b, c = 1, 2, 3
+print a, b # 1 2
+a, b = b, a
+print a, b # 2 1
+a, b = c, a
+print a, b # 3 2
