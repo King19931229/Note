@@ -387,7 +387,7 @@ Shift_JIS 等各自的编码标准)
 如果头两个字节是FF FE就表示该文件采用小头方式)
 3.UTF-8 Windows下是带BOM的UTF-8
 
-【2017年12-21】【2】Sublime Text 3配置Python2编译环境
+【2017-12-21】【2】Sublime Text 3配置Python2编译环境
 1.首先在环境变量里的path加上Python2的安装路径
 2.在工具->编译系统->新建编译系统
 用以下代码替代默认代码
@@ -466,7 +466,7 @@ print a == b # True
 # 对a, b 进行值比较
 print cmp(a, b) # 0
 
-【2017-12-22】【3】Python赋值
+【2017-12-22】【4】Python赋值
 # 与C++不同 等号赋值语句右部分只是值的快照
 a, b, c = 1, 2, 3
 print a, b # 1 2
