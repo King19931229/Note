@@ -28,3 +28,14 @@ LLDB是一个高效的c/c++的调试器 是与LLVM编译器一起使用
 
 【2017-12-24】【2】Android Studio技巧
 1.Alt + Enter 自动补全缺少的库
+
+【2018-01-12】gflags 查越界访问
+http://blog.csdn.net/zcc1414/article/details/38396411
+1.下载WinDbg工具
+2.用管理员权限运行cmd
+3.使用命令
+gflags /p /enable KAPP.exe /full [/unaligned]
+跟踪进程(/unaligned Win10用不了)
+gflags /p /disable KAPP.exe
+撤销跟踪
+原理是: 当有堆分配的时候 在分配的内存的后面放上几个守护字节(Guard Bytes)
