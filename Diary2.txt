@@ -39,3 +39,16 @@ gflags /p /enable KAPP.exe /full [/unaligned]
 gflags /p /disable KAPP.exe
 撤销跟踪
 原理是: 当有堆分配的时候 在分配的内存的后面放上几个守护字节(Guard Bytes)
+
+【2018-01-17】C++ Map初始化技巧
+typedef std::map<int, int> MapType;
+typedef MapType::value_type ValueType;
+// 定义ValueType数组
+ValueType values[] = 
+{
+	std::map<int, int>::value_type(1, 1),
+	std::map<int, int>::value_type(2, 2),
+	std::map<int, int>::value_type(3, 3)
+};
+// 用ValueType数组初始化对应的Map
+MapType myMap(values, values + sizeof(values) / sizeof(ValueType));
