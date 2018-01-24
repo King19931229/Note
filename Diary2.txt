@@ -110,3 +110,74 @@ enum MyEnum
 }
 int x = (int)MyEnum.E0;
 2.不允许在函数内部定义枚举
+
+【2018-01-24】【1】C#多态
+1.C#类中定义抽象函数时其所在类也必须定义成抽象类
+abstract class Base
+{
+	public abstract void Print();
+}
+
+2.C#类中定义与基类相同函数(在基类声明为虚函数)
+必须加关键字override(重写)或者new(覆盖)
+
+class Base
+{
+	public virtual void Print()
+	{
+		Console.WriteLine("Base");
+	}
+}
+
+class Derived : Base
+{
+	public new void Print()
+	{
+		Console.WriteLine("Derived");
+	}
+}
+
+// 若Print函数关键字为new则输出结果为Base
+// 若将Print函数关键字改为override则输出结果为Derived
+Derived derived = new Derived();
+Base mybase = derived;
+mybase.Print();
+
+【2018-01-24】【2】C#接口
+1.接口定义
+interface Base
+{
+	// 不能加 virtual 或者 public 关键字
+	void Print();
+}
+2.实现接口
+class Derived : Base
+{
+	public void Print()
+	{
+		Console.WriteLine("Impl");
+	}
+}
+3.接口可以继承接口
+interface Base
+{
+	void Print();
+}
+
+interface Base2 : Base
+{
+	void Print2();
+}
+
+class Derived : Base2
+{
+	public void Print()
+	{
+		Console.WriteLine("Impl");
+	}
+
+	public void Print2()
+	{
+		Console.WriteLine("Impl2");
+	}
+}
