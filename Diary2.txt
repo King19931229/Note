@@ -52,3 +52,61 @@ ValueType values[] =
 };
 // 用ValueType数组初始化对应的Map
 MapType myMap(values, values + sizeof(values) / sizeof(ValueType));
+
+【2018-01-23】【1】C#学习
+1.c#内置三种引用类型 object、dynamic 和 string
+2.当一个值类型转换为对象类型时 则被称为装箱
+另一方面 当一个对象类型转换为值类型时则被称为 拆箱
+3.System.Object(可以用object关键字)是C#所有通用数据类型的终极基类
+4.dynamic是动态数据类型关键字 类型检查是在运行时发生的
+5.C# string 字符串的前面可以加 @(称作"逐字字符串")将转义字符（\）当作普通字符对待
+6.在类型后面加上?表示该类型是可空类型(Nullable)[string是Nullable]
+7.Null 合并运算符(??)
+double? num1 = null;
+double? num2 = 3.14157;
+double num3;
+num3 = num1 ?? 5.34;
+Console.WriteLine("num3 的值： {0}", num3);
+num3 = num2 ?? 5.34;
+Console.WriteLine("num3 的值： {0}", num3);
+
+num3 的值： 5.34
+num3 的值： 3.14157
+
+【2018-01-23】【2】C#数组
+1.数组是引用类型
+2.数组声明: 类型[]
+3.创建数组：new 类型[数组大小]
+4.示例:
+int[] array；
+array = new int[10];
+
+【2018-01-23】【3】C#结构
+1.若自定义构造函数不能没有参数
+2.构造函数需要初始化所有成员
+3.当使用 new 操作符创建一个结构对象时 会调用适当的构造函数来创建结构
+与类不同 结构可以不使用 new 操作符即可被实例化
+struct HelloStruct
+{
+	public HelloStruct(string _name)
+	{
+		name = _name;
+		Console.WriteLine("HelloStruct Call");
+	}
+	public string name;
+}
+
+HelloStruct hs;
+HelloStruct hs2 = new HelloStruct("hi");
+4.结构不支持继承
+
+【2018-01-23】【4】C#枚举
+1.访问枚举成员必须带有枚举类型名称(与C++不同)
+enum MyEnum
+{
+	E0,
+	E1,
+	E2
+}
+int x = (int)MyEnum.E0;
+2.不允许在函数内部定义枚举
