@@ -181,3 +181,18 @@ class Derived : Base2
 		Console.WriteLine("Impl2");
 	}
 }
+
+【2018-02-07】C#调用C++ DLL
+1.C#里调用的 C++ DLL 必须开启 公共语言运行时支持(/clr)
+2.在C#引用里添加对应的 C++ DLL
+3.加上以下代码
+
+using System.Runtime.InteropServices;   //必须添加，不然DllImport报错
+class CPPDLL
+{
+	//[DllImport("CPPLibrary.dll", CharSet = CharSet.Auto)] //引入dll，并设置字符集
+	[DllImport("CPPLibrary.dll")] //可以替代上一句代码
+	public static extern void CPPTell();// 对用于 CPPLibrary.dll 里的 extern "C" _declspec(dllexport) void CPPTell()原型
+}
+
+然后代码里调用CPPDLL里的函数即可实现调用对应C++ DLL函数了
