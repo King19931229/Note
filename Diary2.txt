@@ -57,7 +57,7 @@ MapType myMap(values, values + sizeof(values) / sizeof(ValueType));
 1.c#内置三种引用类型 object、dynamic 和 string
 2.当一个值类型转换为对象类型时 则被称为装箱
 另一方面 当一个对象类型转换为值类型时则被称为 拆箱
-3.System.Object(可以用object关键字)是C#所有通用数据类型的终极基类
+3.System.Object(可以用object关键字)是C#所有通用数据类型的终极基类 包括所有自定义的class和struct
 4.dynamic是动态数据类型关键字 类型检查是在运行时发生的
 5.C# string 字符串的前面可以加 @(称作"逐字字符串")将转义字符（\）当作普通字符对待
 6.在类型后面加上?表示该类型是可空类型(Nullable)[string是Nullable]
@@ -182,7 +182,7 @@ class Derived : Base2
 	}
 }
 
-【2018-02-07】C#调用C++ DLL
+【2018-02-07】【1】C#调用C++ DLL
 1.C#里调用的 C++ DLL 必须开启 公共语言运行时支持(/clr)
 2.在C#引用里添加对应的 C++ DLL
 3.加上以下代码
@@ -196,3 +196,159 @@ class CPPDLL
 }
 
 然后代码里调用CPPDLL里的函数即可实现调用对应C++ DLL函数了
+
+【2018-02-07】【2】C#调用委托
+C#中的委托(Delegate)类似于 C 或 C++ 中函数的指针
+声明委托:
+public delegate void MyDelegate();
+使用:
+class FuncClass
+{
+	static public void FuncA()
+	{
+		Console.WriteLine("FuncA");
+	}
+
+	static public void FuncB()
+	{
+		Console.WriteLine("FuncB");
+	}
+}
+
+MyDelegate deleA = new MyDelegate(FuncClass.FuncA);
+MyDelegate deleB = new MyDelegate(FuncClass.FuncB);
+MyDelegate deleC = null;
+
+deleA();// FuncClass.FuncA
+deleB();// FuncClass.FuncB
+
+deleC = deleA;
+deleC += deleB;
+
+deleC();// 先调用FuncClass.FuncA然后调用FuncClass.FuncB
+
+【2018-02-08】【1】C#事件
+事件在类中声明且生成且通过使用同一个类或其他类中的委托与事件处理程序关联
+声明委托:
+public delegate void MyDelegate();
+class FuncClass
+{
+	static public void FuncA()
+	{
+		Console.WriteLine("FuncA");
+	}
+
+	static public void FuncB()
+	{
+		Console.WriteLine("FuncB");
+	}
+	// 声明事件
+	public event MyDelegate deleGate;
+
+	public void Call()
+	{
+		if (deleGate != null)
+		{
+			deleGate();
+		}
+		else
+		{
+			Console.WriteLine("Nothing");
+		}
+	}
+}
+
+FuncClass funcClass = new FuncClass();
+// Nothing
+funcClass.Call();
+
+funcClass.deleGate += new MyDelegate(FuncClass.FuncA);
+// FuncA
+funcClass.Call();
+
+funcClass.deleGate += new MyDelegate(FuncClass.FuncB);
+// FuncA FuncB
+funcClass.Call();
+
+funcClass.deleGate -= new MyDelegate(FuncClass.FuncB);
+// FuncA
+funcClass.Call();
+
+funcClass.deleGate -= new MyDelegate(FuncClass.FuncA);
+// Nothing
+funcClass.Call();
+
+【2018-02-08】【2】C#泛型
+泛型类:
+class SwapClass<T>
+{
+	static public void Do(ref T a, ref T b)
+	{
+		T temp = a;
+		a = b;
+		b = temp;
+	}
+}
+泛型函数:
+public static void Swap<T>(ref T a, ref T b)
+{
+	SwapClass<T>.Do(ref a, ref b);
+}
+调用:
+int a = 1, b = 2;
+Swap(ref a, ref b);
+
+【2018-02-08】【3】C#反射
+// http://www.codeisbug.com/Ask/11/1041
+// https://www.cnblogs.com/Stephenchao/p/4481995.html
+C#反射类似C++的RTTI 可以在程序执行期间判定对象类型
+在C#中有三个支持RTTI的关键字：is as typeof
+
+通过is运算符 能够判断对象类型是否为特定类型
+通过as运算符 在运行期间执行类型转换 并且能够使得类型转换失败不抛异常 而返回一个null值
+
+通常通过typeof运算符使用反射
+简单使用方法:
+/*
+System.Reflection命名空间包含的几个类 允许你反射(解析)这些元数据表的代码 
+System.Type类包装了类型
+因此是整个反射子系统的核心 这个类中包含了很多属性和方法
+使用这些属性和方法可以在运行时得到类型的信息
+*/
+System.Type myType = typeof(MyProgram);
+foreach (System.Reflection.MemberInfo mi in myType.GetMembers())
+{
+	Console.WriteLine("{0}/{1}", mi.MemberType, mi.Name);
+}
+
+【2018-02-08】【4】C#属性
+属性(Property) 是类(class) 结构(structure) 和接口(interface)的命名(named)成员
+
+struct HelloStruct
+{
+	public HelloStruct(string _name)
+	{
+		name = _name;
+		//Console.WriteLine("HelloStruct Call");
+	}
+
+	string name;
+
+	// 属性 外部通过 Name 访问和修改name成员
+	public string Name
+	{
+		get
+		{
+			return name;
+		}
+		set
+		{
+			name = value + "__SET";
+		}
+	}
+}
+
+HelloStruct hello = new HelloStruct("Hello");
+hello.Name = "Test";
+// Test__SET
+Console.WriteLine(hello.Name);
