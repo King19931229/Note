@@ -346,9 +346,51 @@ struct HelloStruct
 			name = value + "__SET";
 		}
 	}
+	// 属性特殊用法
+	// 使用默认的get set方法 相当于 public int Val;
+	public int Val { get; set; }
 }
 
 HelloStruct hello = new HelloStruct("Hello");
 hello.Name = "Test";
 // Test__SET
 Console.WriteLine(hello.Name);
+
+【2018-02-09】C#关键字
+1.sealed关键字
+	1.1.当对一个类应用 sealed 修饰符时 此修饰符会阻止其他类从该类继承
+	1.2.sealed修饰方法或属性 防止它们重写特定的虚方法或虚属性
+2.var关键字
+	从 Visual C# 3.0 开始 在方法范围内声明的变量可以具有隐式"类型"var
+类似于C++的auto
+
+【2018-02-19】C# yield
+C# yield 用于迭代器代码中指示它所在的方法是迭代器块
+yield 关键字与 return 关键字结合使用 向枚举器对象提供值 这是一个返回值
+yield 关键字也可与 break 结合使用 表示迭代结束
+例子:
+using System.Collections;
+class MyProgram
+{
+	public IEnumerator GetEnumerator()
+	{
+		string[] value = { "ONE", "TWO", "THREE" };
+		int x = 0;
+		foreach(string str in value)
+		{
+			if (x >= 2)
+				yield break;
+			yield return str;
+			++x;
+		}
+	}
+}
+
+MyProgram prog = new MyProgram();
+foreach (string str in prog)
+{
+	Console.WriteLine(str);
+}
+
+输出:
+ONE TWO
