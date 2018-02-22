@@ -394,3 +394,26 @@ foreach (string str in prog)
 
 输出:
 ONE TWO
+
+【2018-02-22】【1】C# 静态类
+// http://blog.csdn.net/y13156556538/article/details/51232815
+static class MeumScript
+静态类不能实例化
+不能使用 new 关键字创建静态类类型的变量
+
+【2018-02-22】【2】Unity 新建菜单栏
+在Editor下新建脚本
+由于使用UnityEditor 如果不在Editor目录下新建会导致设备打包失败
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+
+static class MeumScript
+{
+	[MenuItem("File/Build Bundles/Generate Instance Data")]
+	public static void GenerateInstanceData()
+	{
+
+	}
+}
