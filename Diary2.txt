@@ -322,6 +322,7 @@ foreach (System.Reflection.MemberInfo mi in myType.GetMembers())
 }
 
 【2018-02-08】【4】C#属性
+// http://blog.csdn.net/zt15732625878/article/details/50696590
 属性(Property) 是类(class) 结构(structure) 和接口(interface)的命名(named)成员
 
 struct HelloStruct
@@ -417,3 +418,68 @@ static class MeumScript
 
 	}
 }
+
+【2018-02-28】Unity AssetBundle
+Unity可以在Inspector为资源指定AssetBundle
+然后添加类似代码
+[MenuItem("File/Build Bundles/Build AssetBundles")]
+static void BuildAllAssetBundles()
+{
+	string assetBundleDirectory = "Assets/AssetBundles";
+	if(!System.IO.Directory.Exists(assetBundleDirectory))
+	{
+		System.IO.Directory.CreateDirectory(assetBundleDirectory);
+	}
+	BuildPipeline.BuildAssetBundles(assetBundleDirectory, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
+}
+导出Bundle
+
+// http://blog.csdn.net/ethuangfen/article/details/53762182
+Bundle里的资源可能会存在相互依赖关系 Unity不会根据依赖自动加载Bundle
+导出Bundle时的主Bundle 可以通过读取里面 类型为AssetBundleManifest 名为"AssetBundleManifest"的资产
+查询Bundle依赖关系 通过代码手动把依赖的Bundle先加载进来 这样根据Bundle实例化对象时资源才能被成功加载
+
+static String CubeBundleName = "cube";
+static String SphereBundleName = "sphere";
+
+[MenuItem("File/Build Bundles/Load AssetBundles")]
+static void Load()
+{
+	AssetBundle assetBundleManifest = AssetBundle.LoadFromFile(Application.dataPath + "/AssetBundles/AssetBundles");
+	if (assetBundleManifest != null)
+	{
+		// 读取出主Bundle的manifest
+		AssetBundleManifest manifest = (AssetBundleManifest)assetBundleManifest.LoadAsset("AssetBundleManifest");
+		if (manifest)
+		{
+			AssetBundle bundle = AssetBundle.LoadFromFile(Application.dataPath + "/AssetBundles/" + CubeBundleName);
+			if (bundle)
+			{
+				string[] depends = manifest.GetAllDependencies(CubeBundleName);
+				AssetBundle[] dependsAssetbundle = new AssetBundle[depends.Length];
+				for (int index = 0; index < depends.Length; index++)
+				{
+					// 读取依赖Bundle
+					dependsAssetbundle[index] = AssetBundle.LoadFromFile(Application.dataPath + "/AssetBundles/" + depends[index]);
+				}
+				GameObject obj = bundle.LoadAsset(CubeBundleName) as GameObject;
+				if (obj != null)
+				{
+					// 实例化GameObject
+					GameObject.Instantiate(obj);
+				}
+				bundle.Unload(false);
+				for (int index = 0; index < depends.Length; index++)
+				{
+					if (dependsAssetbundle[index])
+						dependsAssetbundle[index].Unload(false);
+				}
+			}
+		}
+		// Bundle不需要使用时要Unload
+		assetBundleManifest.Unload(false);
+	}
+}
+
+AssetBundle.LoadFromFile加载一个Bundle后会全局持有这个Bundle 要通过Bundle对象的Unload方法卸载
+否则再次调用AssetBundle.LoadFromFile加载同一个Bundle会失败
