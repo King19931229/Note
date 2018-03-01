@@ -483,3 +483,70 @@ static void Load()
 
 AssetBundle.LoadFromFile加载一个Bundle后会全局持有这个Bundle 要通过Bundle对象的Unload方法卸载
 否则再次调用AssetBundle.LoadFromFile加载同一个Bundle会失败
+
+【2018-03-01】Unity角度裁剪技巧
+首先给所有GameObject加上一个大小很笑的碰撞体
+然后通过相机碰撞体与场景碰撞体的相交 判断出相交碰撞体对应的场景物体
+然后再进行角度裁剪判断
+public class AngleFilterTest : MonoBehaviour
+{
+
+	private float m_fLastCheckTime;
+	public float fIntervalTime = 0.2f;
+	public int nCheckPosDist = 50;
+	public int nCheckBoxRange = 100;
+	public float fCheckAngle = 0f;
+
+	// Use this for initialization
+	void Start ()
+	{
+	}
+
+	// Update is called once per frame
+	void Update ()
+	{
+		float fNowTime = Time.time;
+		if (fNowTime - m_fLastCheckTime > 0.0f)
+		{
+			SceneFilterProcess();
+		}
+	}
+
+	void SceneFilterProcess()
+	{
+		Transform cameraTrans = this.transform;
+
+		Vector3 vecCheckCenterPos = cameraTrans.position + cameraTrans.forward.normalized * nCheckPosDist;
+		float fCheckRadian = (fCheckAngle / 2) * Mathf.Deg2Rad;
+
+		Collider[] colliders = Physics.OverlapBox(vecCheckCenterPos, new Vector3(nCheckBoxRange, nCheckBoxRange, nCheckBoxRange));
+
+		BoxCollider boxCollider = null;
+		for (uint i = 0; i < colliders.Length; ++i)
+		{
+			boxCollider = colliders[i] as BoxCollider;
+			if (boxCollider != null)
+			{
+				CalcBoxAngleFoliter(boxCollider, cameraTrans.position, fCheckRadian);
+			}
+		}
+
+		m_fLastCheckTime = Time.time;
+	}
+
+	void CalcBoxAngleFoliter(BoxCollider boxCollider, Vector3 cameraPos, float fCheckRadian)
+	{
+        GameObject gameObj = boxCollider.gameObject;
+        Renderer renderer = gameObj.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            float fDist = Vector3.Distance(cameraPos, renderer.bounds.center);
+            float fRadian = Mathf.Atan(renderer.bounds.extents.x * 0.5f / fDist);
+
+            if (fRadian < fCheckRadian)
+                renderer.enabled = false;
+            else
+                renderer.enabled = true;
+        }
+	}
+}
