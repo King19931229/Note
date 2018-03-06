@@ -1,0 +1,82 @@
+【2018-03-06】【1】C#数据
+对于结构赋值操作是拷贝内容
+对于类则是增加引用技术
+但是对于String却也是拷贝内容
+struct ValueContain
+{
+	public int value;
+};
+或者
+class ValueContain
+{
+	public int value;
+};
+
+// 对于结构可以省略 = new ValueContain();
+ValueContain val = new ValueContain();
+val.value = 10;
+
+ValueContain val2 = val;
+val2.value = 20;
+
+Console.WriteLine("{0}", val.value);
+
+结构输出的是10 类输出的是20
+
+
+String str = "A";
+String str2 = str;
+str2 = "B";
+
+Console.WriteLine("{0}", str);
+输出 A
+
+【2018-03-06】【2】C# Region
+仅仅用于编辑器折叠代码使用
+#region MyRegion
+#endregion
+
+【2018-03-06】【3】Python argparse
+# https://www.jianshu.com/p/fef2d215b91d
+import argparse
+
+# 1.新建一个解析器
+parser = argparse.ArgumentParser(
+	# description 可选
+	description="test case"
+)
+
+# 2.添加一个名字为arg0的定位参数
+parser.add_argument("arg0")
+
+# 3.添加一个可选参数
+一种是通过一个-来指定的短参数 如-h
+一种是通过--来指定的长参数 如--help
+parser.add_argument("-v", "--verbosity")
+# 注意如果长短参数同时存在则
+# 通过 args = parser.parse_args() 访问 args 的参数成员只能用长参数访问 args.verbosity
+
+# 4.避开设定值
+parser.add_argument("-v", "--verbose", action="store_true")
+# 这样就不能设定参数值并且参数值为true 如果action="store_false"则参数值为false
+
+# 5.设定值类型
+parser.add_argument("x", type=int)
+# 这样值类型不为int则报错
+
+# 6.设定值范围
+parser.add_argument("x", type=int, choices=[1,2,3])
+# 这样值不为 1 or 2 or 3 则报错
+
+# 7.添加help信息
+parser.add_argument("x", type=int, help="args help")
+
+# 8.设定默认参数
+parser.add_argument("-v", "--verbose", default=1)
+# 这样值不被指定时将会用默认值1 注意只能对可选参数使用
+
+# *9.设置互斥参数
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-v", "--verbose", action="store_true")
+group.add_argument("-q", "--quiet", action="store_true")
+# 这样 -v 和 -q 不能同时出现
