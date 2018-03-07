@@ -58,7 +58,7 @@ parser.add_argument("-v", "--verbosity")
 
 # 4.避开设定值
 parser.add_argument("-v", "--verbose", action="store_true")
-# 这样就不能设定参数值并且参数值为true 如果action="store_false"则参数值为false
+# 这样指定参数时就不能设定参数值并且参数值为true 如果action="store_false"则参数值为false
 
 # 5.设定值类型
 parser.add_argument("x", type=int)
@@ -80,3 +80,13 @@ group = parser.add_mutually_exclusive_group()
 group.add_argument("-v", "--verbose", action="store_true")
 group.add_argument("-q", "--quiet", action="store_true")
 # 这样 -v 和 -q 不能同时出现
+
+【2018-03-07】SimplePref使用
+// http://www.jishux.com/plus/view-672770-1.html
+// https://zhuanlan.zhihu.com/p/25277481
+// http://www.dpull.com/blog/2018-02-22-simpleperf
+// https://developer.android.com/ndk/guides/simpleperf.html
+下载最新的NDK 目录里有个simpleperf文件夹 运行里面的app_profiler.py进行剖析
+如: python app_profiler.py -p com.xxx.yyy.zzz -nc -r "--duration 10 -g --call-graph dwarf" -nb
+生成perf.data文件 运行report.py进行分析
+如: python report.py --full-callgraph -g caller --gui --children
