@@ -90,3 +90,90 @@ group.add_argument("-q", "--quiet", action="store_true")
 如: python app_profiler.py -p com.xxx.yyy.zzz -nc -r "--duration 10 -g --call-graph dwarf" -nb
 生成perf.data文件 运行report.py进行分析
 如: python report.py --full-callgraph -g caller --gui --children
+
+【2018-04-02】【1】Python面向对象
+#coding=utf-8
+class Test:
+	# 类文档
+	'Test Class'
+	# 类成员 相当于C++类静态变量
+	count = 0
+
+	# 通常传入的第一个参数叫self 这里为了突出self不是关键字
+	# 起名为address
+	def __init__(address, name):
+		print address
+		# 新增一个对象属性
+		address._name = name
+		Test.count += 1
+
+	def PrintName(self):
+		print self._name
+
+	def ModifyName(self, name):
+		# 修改一个对象属性
+		self._name = name
+
+	def DeleteName(self):
+		del self._name
+
+# 实例化对象 隐式传入对象地址作为__init__的第一个参数
+t0 = Test("Test")
+
+t0.ModifyName("ModifyName")
+t0.PrintName()
+t0.DeleteName()
+
+# t0.PrintName()
+
+# 输出类成员
+print Test.count
+
+【2018-04-02】【2】Python面向对象
+#coding=utf-8
+class Test:
+	# 类文档
+	'Test Class'
+	# 类成员 相当于C++类静态变量
+	count = 0
+
+	# 通常传入的第一个参数叫self 这里为了突出self不是关键字
+	# 起名为address
+	def __init__(address, name):
+		print address
+		# 新增一个对象属性
+		address._name = name
+		Test.count += 1
+
+	def PrintName(self):
+		print self._name
+
+	def ModifyName(self, name):
+		# 修改一个对象属性
+		self._name = name
+
+	def DeleteName(self):
+		del self._name
+
+t0 = Test("Name")
+
+# 输出True
+print hasattr(t0, "_name")
+# 输出False
+print hasattr(t0, "_age")
+
+# 输出Name
+print getattr(t0, "_name")
+# 报错不存在属性_age
+# print getattr(t0, "_age")
+
+# 删除属性_name
+delattr(t0, "_name")
+
+# 报错不存在属性_age)
+# delattr(t0, "_age"
+
+setattr(t0, "_name", "NewName")
+
+# 不存在属性_age 输出Name 避免抛出异常
+print getattr(t0, "_age", "Name")
