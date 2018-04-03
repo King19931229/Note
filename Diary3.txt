@@ -92,11 +92,15 @@ group.add_argument("-q", "--quiet", action="store_true")
 如: python report.py --full-callgraph -g caller --gui --children
 
 【2018-04-02】【1】Python面向对象
+# http://www.runoob.com/python/python-object.html
+# 类的方法与普通的函数只有一个特别的区别——它们必须有一个额外的第一个参数名称 按照惯例它的名称是 self
+
+例子:
 #coding=utf-8
 class Test:
 	# 类文档
 	'Test Class'
-	# 类成员 相当于C++类静态变量
+	# 类变量 相当于C++类静态变量
 	count = 0
 
 	# 通常传入的第一个参数叫self 这里为了突出self不是关键字
@@ -115,6 +119,7 @@ class Test:
 		self._name = name
 
 	def DeleteName(self):
+		# 删除一个对象属性
 		del self._name
 
 # 实例化对象 隐式传入对象地址作为__init__的第一个参数
@@ -126,10 +131,18 @@ t0.DeleteName()
 
 # t0.PrintName()
 
-# 输出类成员
+# 输出类变量
 print Test.count
 
 【2018-04-02】【2】Python面向对象
+# http://www.runoob.com/python/python-object.html
+# 你也可以使用以下函数的方式来访问属性:
+# getattr(obj, name[, default]): 访问对象的属性
+# hasattr(obj,name): 检查是否存在一个属性
+# setattr(obj,name,value): 设置一个属性 如果属性不存在 会创建一个新属性
+# delattr(obj, name): 删除属性
+
+例子:
 #coding=utf-8
 class Test:
 	# 类文档
@@ -144,16 +157,6 @@ class Test:
 		# 新增一个对象属性
 		address._name = name
 		Test.count += 1
-
-	def PrintName(self):
-		print self._name
-
-	def ModifyName(self, name):
-		# 修改一个对象属性
-		self._name = name
-
-	def DeleteName(self):
-		del self._name
 
 t0 = Test("Name")
 
@@ -177,3 +180,133 @@ setattr(t0, "_name", "NewName")
 
 # 不存在属性_age 输出Name 避免抛出异常
 print getattr(t0, "_age", "Name")
+
+【2018-04-03】【1】Python继承
+# http://www.runoob.com/python/python-object.html
+1.在继承中基类的构造(__init__()方法)不会被自动调用 它需要在其派生类的构造中亲自专门调用
+2.在调用基类的方法时 需要加上基类的类名前缀 且需要带上self参数变量
+3.Python总是首先查找对应类型的方法 如果它不能在派生类中找到对应的方法 它才开始到基类中逐个查找
+
+例子:
+class Base:
+	count = 0
+
+	def __init__(self):
+		print "Base __init__ call"
+
+	def __del__(self):
+		print "Base __del__ call"
+
+	def Func(self):
+		print "Base Func"
+
+class Derived(Base):
+	def __init__(self):
+		print "Derived __init__ call"
+
+	def __del__(self):
+		print "Derived __del__ call"
+
+	# 重写基类函数
+	def Func(self):
+		print "Derived Func"
+
+# 只调用到派生类的构造函数
+# derived = Derived()
+
+class Derived_2(Base):
+	count = 0
+
+	def __init__(self):
+		Base.__init__(self)
+		Derived_2.count += 1
+		print "Derived_2 __init__ call"
+
+	def __del__(self):
+		# 函数可能无法被调用 垃圾回收时 类被销毁了
+		# Base.__del__(self)
+		# 类成员可能无法使用 垃圾回收时 类被销毁了
+		# print Base.count
+		# Derived_2.count -= 1
+		print "Derived_2 __del__ call"
+
+	# 运算符重载
+	def __str__(self):
+		return "Derived_2 toStr"
+
+	# 重写基类函数
+	def Func(self):
+		print "Derived_2 Func"
+
+derived2 = Derived_2()
+derived2.Func()
+print derived2
+
+【2018-04-03】【2】Python面向对象
+# http://www.runoob.com/python/python-object.html
+1.对象变量
+单下划线、双下划线、头尾双下划线说明：
+__foo__: 定义的是特殊方法，一般是系统定义名字  类似 __init__() 之类的
+_foo: 以单下划线开头的表示的是 protected 类型的变量 即保护类型只能允许其本身与子类进行访问 不能用于 from module import *
+__foo: 双下划线的表示的是私有类型(private)的变量 只能是允许这个类本身进行访问了
+
+2.类属性与方法
+类的私有属性
+__private_attrs: 两个下划线开头 声明该属性为私有 不能在类的外部被使用或直接访问 在类内部的方法中使用时 self.__private_attrs
+
+类的方法
+在类的内部 使用 def 关键字可以为类定义一个方法 与一般函数定义不同 类方法必须包含参数 self 且为第一个参数
+
+类的私有方法
+__private_method: 两个下划线开头 声明该方法为私有方法 不能在类地外部调用 在类的内部调用 self.__private_methods
+
+【2018-04-03】【3】Python模块与包
+# http://www.runoob.com/python/python-modules.html
+# https://www.cnblogs.com/jiaxin359/p/7580375.html
+# https://blog.csdn.net/luo123n/article/details/49849649
+模块(Module): 是一个 Python 文件以 .py 结尾 包含了Python对象定义和Python语句
+包(Package): 是文件夹 但该文件夹下必须存在 __init__.py 文件用于标识当前文件夹是一个包
+
+例子:
+目录结构
+package/
+	subpackage/
+		__init__.py
+		__main__.py
+		subfile.py
+		subfile2.py
+	__init__.py
+	__main.py
+	main.py
+
+在与package同级目录下package是一个包 package.subpackage也是一个包
+package有模块main.py
+package.subpackage有模块 subfile.py subfile2.py
+
+python有两种加载文件的方法 一种是作为顶层的脚本
+另一种时当做模块 如果你直接执行这个程序 那么这个文件就被当做是顶层脚本来执行了
+__name__的值为模块名 顶层脚本的__name__为 __main__
+
+模块内引用其他模块用import
+如果你输入python -m myfile.py或者在其他的文件当中使用import来导入这个文件的时候 它就被当做模块来导入
+
+相对import
+subfile.py :
+#coding=utf-8
+# 绝对引用subfile2
+import subfile2
+# 相对引用 一个.表示同级路径 ..表示更上一级
+from . import subfile2
+
+相对引用不能用于顶层脚本 只能用于模块
+如果使用相对引用 执行python package/subpackage/subfile.py报错
+ValueError: Attempted relative import in non-package
+
+可以使用python -m package.subpackage.subfile -m参数告诉python把它当做一个模块来加载 而不是顶层的脚本
+如果被执行的不是模块而是一个包 则需要包内有命名为__main__.py的文件
+
+【2018-04-03】【4】Sublime Text Project
+// http://www.cnblogs.com/easy-blue/p/7840885.html
+1. 创建工程 Project > Add Folder to Project
+2. 保存工程 Project > Save Project As
+菜单栏如果隐藏了点击Alt重新弹出
