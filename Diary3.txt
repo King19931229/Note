@@ -94,7 +94,6 @@ group.add_argument("-q", "--quiet", action="store_true")
 【2018-04-02】【1】Python面向对象
 # http://www.runoob.com/python/python-object.html
 # 类的方法与普通的函数只有一个特别的区别——它们必须有一个额外的第一个参数名称 按照惯例它的名称是 self
-
 例子:
 #coding=utf-8
 class Test:
@@ -185,12 +184,10 @@ print getattr(t0, "_age", "Name")
 # http://www.runoob.com/python/python-object.html
 1.在继承中基类的构造(__init__()方法)不会被自动调用 它需要在其派生类的构造中亲自专门调用
 2.在调用基类的方法时 需要加上基类的类名前缀 且需要带上self参数变量
-3.Python总是首先查找对应类型的方法 如果它不能在派生类中找到对应的方法 它才开始到基类中逐个查找
+3.Python总是首先查找对应类型的方法(或成员) 如果它不能在派生类中找到对应的方法(或成员) 它才开始到基类中逐个查找
 
 例子:
 class Base:
-	count = 0
-
 	def __init__(self):
 		print "Base __init__ call"
 
@@ -240,7 +237,6 @@ class Derived_2(Base):
 
 derived2 = Derived_2()
 derived2.Func()
-print derived2
 
 【2018-04-03】【2】Python面向对象
 # http://www.runoob.com/python/python-object.html
@@ -294,9 +290,9 @@ __name__的值为模块名 顶层脚本的__name__为 __main__
 subfile.py :
 #coding=utf-8
 # 绝对引用subfile2
-import subfile2
+import subfile2 [as newspace]
 # 相对引用 一个.表示同级路径 ..表示更上一级
-from . import subfile2
+from . import subfile2 [as newspace]
 
 相对引用不能用于顶层脚本 只能用于模块
 如果使用相对引用 执行python package/subpackage/subfile.py报错
@@ -310,3 +306,212 @@ ValueError: Attempted relative import in non-package
 1. 创建工程 Project > Add Folder to Project
 2. 保存工程 Project > Save Project As
 菜单栏如果隐藏了点击Alt重新弹出
+
+【2018-04-04】【1】Python异常
+1.
+try:
+	可能抛出异常代码
+except: #抛出异常进入此分支
+	异常处理代码
+else: #无抛出异常进入分支
+	非异常执行代码
+
+2.
+try:
+	可能抛出异常代码
+finally:
+	无论是否异常都会进入分支
+
+3.自定义异常
+class MyException(Exception):
+	def __init__(self, param):
+		self.agrs = str(param)
+
+例子:
+1.
+try:
+	if len(profit) != len(rate):
+		# 手动促发异常
+		raise Exception ("length wrong", "ERROR")
+	# arg 为异常参数
+	# 才此为 ("length wrong", "ERROR")
+except Exception, arg:
+	print "Excetion catch", arg
+else:
+	pass
+
+2.
+class MyException(Exception):
+	def __init__(self, param):
+		self.agrs = str(param)
+
+try:
+	if len(profit) == len(rate):
+		raise MyException("ERROR")
+	# 捕获自定义异常 instance为异常实例
+except Exception as instance:
+	print "Excetion catch", instance.args
+
+3.
+try:
+	if len(profit) != len(rate):
+		raise Exception('length wrong', "ERROR")
+	else:
+		print "no error"
+finally:
+	print "finally call"
+
+【2018-04-04】【2】Python序列化对象
+# https://www.cnblogs.com/shixisheng/p/7089930.html
+根据python官方文档的定义 一个序列对象不必要保存所有的元素
+一般来说 一个序列对象至少需要实现如下两个方法:
+1. __len__方法 该方法返回序列长度 也即序列中元素个数。
+2. __getitem__方法 该方法有一个整型参数(index) 它需要返回序列中下标为index的元素的值
+
+例子：
+class MyRange(object):
+	def __init__(self, beg, end, step):
+		self._beg = beg
+		self._end = end
+		self._step = step
+		self._count = end - beg
+
+	# 序列化对象必须实现__len__方法
+	def __len__(self):
+		return self._count
+
+	# 序列化对象必须实现__getitem__方法
+	def __getitem__(self, index):
+		index = index if index >= 0 else self._count + index
+		return self._beg + index * self._step
+
+myRange = MyRange(0, 10, 1)
+# 输出 3
+print myRange[3]
+# 输出 10
+print len(myRange)
+
+range方法返回的是一个list对象 它需要开辟专门的空间保存序列中所有的元素
+xrange方法返回的是xrange对象 它是一个序列对象 但并不保存序列中的元素
+其实现方法与MyRange类型类似
+在python3.x中 xrange函数已经不复存在了
+
+【2018-04-04】【3】Python for if
+Python里面有一种for if 组合的用法比较特别
+例如:
+1.判断字符串里有无空格
+str = 'i am ok'
+# 进入else分支输出 no space in string
+# str = "hello"
+for i in xrange(0, len(str)):
+	ch = str[i]
+	if ch.isspace():
+	 	break;
+# 如果循环正常执行完毕将会进入else分支
+else:
+	print "no space in string"
+
+2.判断100以内的素数
+for n in range(2, 101):
+	m = int(math.sqrt(n)) + 1
+	for k in range(2, m):
+		if n % k == 0:
+			break;
+	else:
+		print n
+		
+【2018-04-04】【4】Python 函数变量
+1.Python函数内部的变量为局部变量 如果想要引用到全局变量需要使用global声明
+例:
+def func():
+	global callCount # = 0 编译失败 Python允许在声明全局变量同时赋值
+	callCount += 1
+
+callCount = 0
+func()
+func()
+func()
+# 输出 3
+print callCount
+
+2.Python函数内部变量不具有记忆性 相当于C++的栈变量
+例:
+def func():
+	callCount = 0
+	callCount += 1
+	print callCount
+
+# 三次都是输出1
+func()
+func()
+func()
+
+【2018-04-04】【5】Python 类变量与实例变量
+Python里不对实例化对象的变量初始化将会使用类同名变量的值初始化
+例:
+class MyClass:
+	count = 10
+	def __init__(self):
+		# 不对实例化对象的count初始化
+		# self.count的值会用类同名变量的值初始化
+		# self.count = 0
+		pass
+
+	def call(self):
+		self.count += 1
+		print "self.count: ", self.count
+
+myClass = MyClass()
+
+# 输出 10
+print "myClass.count", myClass.count
+
+# 输出 11 如果在__init__对count赋值为0 输出为 1
+myClass.call()
+# 输出 12 如果在__init__对count赋值为0 输出为 2
+myClass.call()
+# 输出 13 如果在__init__对count赋值为0 输出为 3
+myClass.call()
+
+# 输出 10
+print "MyClass.count", MyClass.count
+
+【2018-04-04】【6】Python三元表达式
+格式: valForTrue if 条件为真 else valForFalse
+max = lambda a, b: a if a > b else b
+min = lambda a, b: b if a > b else b
+
+【2018-04-04】【7】Python函数传参
+# https://www.cnblogs.com/loleina/p/5276918.html
+Python不允许程序员选择采用传值还是传引用
+如果函数收到的是一个可变对象(比如字典或者列表) 就能修改对象的原始值 相当于通过"传引用"来传递对象
+如果函数收到的是一个不可变对象(比如数字 字符串或者元组) 就不能直接修改原始对象 相当于通过"传值"来传递对象。
+例:
+def func(num):
+	num *= 2
+
+class NumContainer:
+	def __init__(self, num):
+		self.num = num
+
+def funContainer(container):
+	container.num *= 2
+
+num = 10
+func(num)
+# 输出10
+print num
+
+container = NumContainer(10)
+# 输出20
+funContainer(container)
+print container.num
+
+又如：
+def func(str):
+	str = "newString"
+
+str = "oldString"
+# 输出oldString
+func(str)
+print str
