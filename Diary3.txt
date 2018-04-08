@@ -515,3 +515,113 @@ str = "oldString"
 # 输出oldString
 func(str)
 print str
+
+【2018-04-08】【1】Python闭包
+Python支持在函数内定义函数 这样就有语言上的闭包支持
+# https://www.cnblogs.com/Sabre/p/8182107.html
+闭包定义:
+如果在一个内部函数里 对在外部作用域(但不是在全局作用域)的变量进行引用
+那么内部函数就被认为是闭包(closure)
+定义在外部函数内的但由内部函数引用或者使用的变量被称为自由变量
+
+简言之就是子函数对父函数作用域内的变量进行引用就形成闭包
+
+例:
+def funcGenerator(func):
+	print "funcGenerator: ", func
+
+	def funcRes():
+		print "funcRes: ", func
+		return func()
+
+	return funcRes
+	
+【2018-04-08】【2】Python装饰器
+# https://www.cnblogs.com/lianyingteng/p/7743876.html
+# https://www.zhihu.com/question/26930016
+装饰器函数的外部函数传入要装饰的函数名字 返回经过修饰后函数的名字
+@a 
+@b 
+def c():
+...
+相当于
+c = a(b(c()))
+例：
+def funcGenerator(func):
+	print "funcGenerator: ", func
+
+	def funcRes():
+		print "funcRes: ", func
+		return func()
+
+	return funcRes
+
+不使用装饰器
+# def myFunc():
+# 	print "myFunc"
+# myFunc = funcGenerator(myFunc)
+
+使用装饰器
+@funcGenerator
+def myFunc():
+	print "myFunc"
+
+【2018-04-08】【3】PyQt
+PyQt是一个GUI控件工具箱 是Qt的Python接口
+下载PyQt: https://sourceforge.net/projects/pyqt/files/PyQt4/
+或者 pip install python-qt4
+文档: http://pyqt.sourceforge.net/Docs/PyQt4/index.html
+
+PyQt4 HelloWorld:
+
+面向过程:
+import sys
+from PyQt4 import QtGui
+
+app = QtGui.QApplication(sys.argv)
+widget = QtGui.QWidget()
+widget.resize(250, 150)
+
+widget.setWindowTitle('Icon')
+widget.setWindowIcon(QtGui.QIcon('icon.png'))
+widget.show()
+
+sys.exit(app.exec_())
+
+面向对象:
+class Icon(QtGui.QWidget):
+	def __init__(self, parent=None):
+		QtGui.QWidget.__init__(self, parent)
+
+		self.setGeometry(300, 300, 250, 150)
+		self.setWindowTitle('Icon')
+		self.setWindowIcon(QtGui.QIcon('icons/web.png'))
+
+app = QtGui.QApplication(sys.argv)
+icon = Icon()
+icon.show()
+
+sys.exit(app.exec_())
+
+【2018-04-08】【4】Qt信号槽
+# https://www.cnblogs.com/QG-whz/p/4995938.html
+# https://www.cnblogs.com/liushui-sky/p/5732931.html
+信号与插槽机制是Qt编程的基础 它可以绑定对象而不需要对象之间彼此了解
+不同点式槽可以链接到信号 通过这种方式可以在每次信号发射的的时候做到调用槽函数
+connect(sender, SIGNAL(signal), receiver, SLOT(slot));
+每次调用sender.singal()时候将会调用receiver.slot()
+
+【2018-04-08】【5】Python类静态函数
+Python可以在类函数上加上修饰符@staticmethod
+使函数变为静态函数
+例:
+class MyClass:
+	@staticmethod
+	def MyStaticFunc():
+		print "MyStaticFunc"
+
+# 通过类调用类静态函数
+MyClass.Func()
+# 通过对象调用类静态函数
+myClass = MyClass()
+myClass.Func()
