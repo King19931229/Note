@@ -625,3 +625,112 @@ MyClass.Func()
 # 通过对象调用类静态函数
 myClass = MyClass()
 myClass.Func()
+
+【2018-04-09】【1】Pyqt自定义信号与槽
+# http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html
+
+自定义信号:
+发射对象.emit(QtCore.SIGNAL(信号原型) [,信号参数])
+
+自定义槽:
+@pyqtSlot(参数类型表)
+槽函数体
+
+例:
+ # -*- coding: UTF-8 -*-
+import sys
+import inspect
+from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import pyqtSlot
+class Example(QtGui.QMainWindow):
+	def __init__(self):
+		super(Example, self).__init__()
+		self.initUI()
+
+	def initUI(self):
+		# self.connect(self, QtCore.SIGNAL("closeEmit(int, int)"),
+		# 	# 这里槽函数不加@pyqtSlot(int, int)也不会报错
+		# 	self.onMouseClicked)
+
+		QtCore.QObject.connect(self,
+			QtCore.SIGNAL("closeEmit(int, int)"),
+			self,
+			# 这里如果槽函数不加@pyqtSlot(int, int)将会报错
+			# Although PyQt4 allows any Python callable to be used as a slot when connecting signals,
+			# it is sometimes necessary to explicitly mark a Python method as being a Qt slot and to
+			# provide a C++ signature for it. PyQt4 provides the pyqtSlot() function decorator to do this.
+			QtCore.SLOT("onMouseClicked(int, int)"))
+	
+	@pyqtSlot(int, int)
+	def onMouseClicked(self, x, y):
+		print "Clicked Pos: (%d %d)" % (x, y)
+
+	def mousePressEvent(self, event):
+		pos = event.globalPos()
+		# 发射信号和参数
+		self.emit(QtCore.SIGNAL("closeEmit(int, int)"), pos.x(), pos.y())
+
+app = QtGui.QApplication(sys.argv)
+ex = Example()
+ex.show()
+sys.exit(app.exec_())
+
+【2018-04-09】【2】Pyqt(Qt)常用函数
+// http://doc.qt.io/archives/qt-4.8/index.html
+1.QWidget::setWindowTitle(const QString &) 设置标题
+2.QWidget::setWindowIcon(const QIcon & icon) 设置图标
+3.QWidget::setGeometry(int x, int y, int w, int h) 设置位置与大小
+4.bool QObject::connect(const QObject * sender, const char * signal,
+	const QObject * receiver, const char * method,
+	Qt::ConnectionType type = Qt::AutoConnection) 信号槽连接
+5.QAction::setShortcut(const QKeySequence & shortcut) 设置快捷键
+6.QAction::setStatusTip(const QString & statusTip) 设置状态Tip
+7.QWidget::setFocusPolicy(Qt::FocusPolicy policy) 设置焦点策略
+8.QWidget::move(int x, int y) 移动控件
+9.void QWidget::setLayout(QLayout * layout) 设置布局
+10.void QBoxLayout::addLayout(QLayout * layout, int stretch = 0) 和
+   void QGridLayout::addLayout(QLayout * layout, int row, int column, Qt::Alignment alignment = 0) 添加布局
+11.void QLayout::addWidget(QWidget * w) 在布局里添加控件
+12.QMenuBar * QMainWindow::menuBar() const 获取菜单栏
+13.QMenu * QMenuBar::addMenu(const QString & title) 往菜单栏添加菜单项
+14.void QMenu::addAction(QAction * action) 往菜单项添加 动作事件(Action)即子项
+15.QToolBar * QMainWindow::addToolBar(const QString & title) 添加工具栏项目
+
+【2018-04-09】【3】Pyqt(Qt)常用函数
+1.void QToolBar::addAction(QAction * action) 往工具栏项目添加 动作事件(Action)即子项
+2.QWidget::resize(int w, int h) 重新设置控件大小
+3.QWidget::setAcceptDrops(bool on) 是否接受拖放
+4.QLineEdit::setDragEnabled(bool b) 是否启用拖放
+5.void QWidget::dragEnterEvent(QDragEnterEvent * event) 拖动正在进行鼠标进入控件时调用 用于促发拖放事件
+6.void QWidget::dropEvent(QDropEvent * event) 处理拖放事件
+7.void QDrag::setHotSpot(const QPoint & hotspot) 设置拖放位置
+8.void QDrag::setMimeData(QMimeData * data) 设置拖动Mime数据
+9.Qt::DropAction QDrag::exec(Qt::DropActions supportedActions = Qt::MoveAction) 启动拖放
+
+【2018-04-09】【4】Python super关键字
+# http://www.runoob.com/python/python-func-super.html
+对于继承自object的基类 可以使用super关键字查找
+例:
+# 必须继承object
+class Base(object):
+	def __init__(self):
+		print "BaseInit"
+
+	def Func(self):
+		print "Base"
+
+class Derived(Base):
+	def __init__(self):
+		# Base.__init__(self)
+		super(Derived, self).__init__()
+		print "DerivedInit"
+
+	def Func(self):
+		# Base.Func(self)
+		super(Derived, self).Func()
+		print "Derived"
+
+# 输出 BaseInit DerivedInit
+test = Derived()
+# 输出 Base Derived
+test.Func()
