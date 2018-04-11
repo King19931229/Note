@@ -734,3 +734,120 @@ class Derived(Base):
 test = Derived()
 # 输出 Base Derived
 test.Func()
+
+【2018-04-10】【1】QtDesigner
+1.使用QtDesigner生成.ui文件
+2.执行命令 pyuic4 -o 目标文件 源文件(如 pyuic4 -o myUI.py myUI.ui)
+3.使用生成的目标文件
+例:
+myUI.py:
+......
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName(_fromUtf8("MainWindow"))
+        MainWindow.resize(479, 331)
+        self.centralwidget = QtGui.QWidget(MainWindow)
+        ......
+		self.textEdit = QtGui.QTextEdit(self.centralwidget)
+		......
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QtGui.QStatusBar(MainWindow)
+        ......
+        MainWindow.setStatusBar(self.statusbar)
+        self.menuBar = QtGui.QMenuBar(MainWindow)
+        ......
+        MainWindow.setMenuBar(self.menuBar)
+        self.actionOpen = QtGui.QAction(MainWindow)
+        ......
+
+        self.retranslateUi(MainWindow)
+        QtCore.QObject.connect(self.actionOpen, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.openDialog)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.menuFile.setTitle(_translate("MainWindow", "File", None))
+        self.actionOpen.setText(_translate("MainWindow", "Open", None))
+        self.actionOpen.setShortcut(_translate("MainWindow", "Ctrl+O", None))
+
+main.py:
+import sys
+from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import pyqtSlot
+from myUI import *
+
+class MyWindow(QtGui.QMainWindow):
+	def __init__(self):
+		super(MyWindow, self).__init__()
+		self.main = Ui_MainWindow()
+		self.main.setupUi(self)
+		self.show()
+
+	def openDialog(self):
+		filename = QtGui.QFileDialog.getOpenFileName(self, "open file",
+			"/home")
+		if filename:
+			file = open(filename)
+			data = file.read()
+			file.close()
+			self.main.textEdit.setText(data)
+
+app = QtGui.QApplication(sys.argv)
+myWindow = MyWindow()
+sys.exit(app.exec_())
+
+【2018-04-10】【2】Python常见文档格式
+# http://forum.digitser.cn/thread-1758-1-1.html
+# https://www.zhihu.com/question/30296617
+# https://www.cnblogs.com/zhangqunshi/p/6657208.html
+1. .py 文件
+	以 .py 作扩展名的文件是 Python 源代码文件 由 python.exe 解释，可在控制台下运行
+2. .pyc 文件
+	以 .pyc 作扩展名的文件是 python 编译文件 .pyc 文件是不能直接用文本编辑器进行编辑 其优点是 .pyc 文件的执行速度要远快于 .py 文件
+	对于py文件 执行命令来生成pyc文件 python -m foo.py
+3. .pyw 文件
+	.pyw 文件与 .pyc 文件的执行 本质上并没什么区别 只是 .pyw 文件执行的时候不会出现类似 CMD 命令的黑色 shell 窗口
+	.pyw 文件格式主要是设计用来运行 Python 纯 GUI (图形用户界面) 程序的
+4. .pyo 文件
+	.pyo 文件是相对 .pyc 而言的 优化编译后的 Python 文件
+5. .pyd 文件
+	.pyd 文件是非 Python，由其它编程语言 "编写-编译" 生成的 Python 扩展模块
+
+【2018-04-11】【1】安装Python setuptools
+1.下载 setuptools https://pypi.python.org/pypi/setuptools#downloads
+2.若有 pip 用 pip list 检查是否已存在旧版本的 setuptools 若有 用命令 pip uninstall setuptools 卸载掉
+3.解压下载好的setuptools 用命令 python setup.py install 安装
+4.设置好setuptools.exe所在路径到环境变量Path里
+5.用命令 easy_install 验证是否安装成功 若输出类似 error: No urls, filenames, or requirements specified (see --help) 则成功
+
+【2018-04-11】【2】PyCharm Python远程调试
+# https://www.cnblogs.com/jinjiangongzuoshi/p/5638706.html
+1.在PyCharm安装路径里找到pycharm-debug.egg文件(若远程计算机运行的是Python3则需要pycharm-debug-py3k.egg)
+2.设法把pycharm-debug.egg添加到远程计算机引用路径中
+	可用以下方式
+	2.1 用 easy_install pycharm-debug.egg 进行安装
+	2.2 将pycharm-debug.egg添加至PYTHONPATH或sys.path
+	2.3 用pip install pydevd
+	直到import pydevd成功
+3.在本地开发环境的PyCharm中进行监听配置
+	3.1【Run】->【Edit Configurations】
+	3.2【Add New Configuration】->【Python Remote Debug】
+	填写 Local host name 和 Port 其中Local host name指的是本机开发环境的IP地址 而Port则随便填写一个10000以上的即可
+	需要注意的是 由于远程计算机需要连接至本地开发环境 因此本地IP地址应该保证远程可以访问得到
+	3.3【Apply】and【OK】
+4.在远程计算机的应用程序中插入代码
+	例如:
+	pydevd.settrace('localhost', port=10088, stdoutToServer=True, stderrToServer=True)
+	其中 IP地址和端口号要与PyCharm中的监听配置保持一致
+5.在PyCharm中启动Debug Server
+	【Run】->【Debug…】，选择刚创建的远程调试配置项，在Debug Console中会显示如下信息：
+	Starting debug server at port 10088
+	Use the following code to connect to the debugger:
+	import pydevd
+	pydevd.settrace('localhost', port=10088, stdoutToServer=True, stderrToServer=True)
+	Waiting for process connection...
+	Connected to pydev debugger (build 181.4445.76)
+	Waiting for process connection...
+6.在远程计算机中启动应用程序 当执行到pydevd.settrace语句时
+便会与本地开发环境中的PyCharm建立通讯连接 接下来便可以在本地IDE中进行单步调试了
