@@ -1,0 +1,43 @@
+【2018-04-12】Python字符编码
+str是字节串 根据源码的保存格式可能是gbk也可能是utf-8或者其他
+unicode是宽字节字符串 格式是utf-16
+
+str.decode(源字节串编码方式) --> unicode
+unicode.encode(目标字节串编码方式) --> str
+
+可以使用chardet模块检测str的编码格式(chardet需要自己安装)
+
+例:
+ # -*- coding: utf-8 -*-
+import sys
+import chardet
+
+s = "Python encode() 方法 和 decode() 方法"
+
+print chardet.detect(s)
+
+# 对str进行解码
+s = s.decode("utf-8")
+# s = unicode(s, "utf-8")
+print "s is unicode", isinstance(s, unicode)
+
+# 对unicode进行编码
+s = s.encode('utf-8')
+print "s is str", isinstance(s, str)
+
+# 对str进行解码
+s = s.decode("utf-8")
+print "s is unicode", isinstance(s, unicode)
+
+# 对unicode进行编码
+s = s.encode("gb2312")
+print "s is str", isinstance(s, str)
+print chardet.detect(s)
+
+输出:
+{'confidence': 0.9690625, 'language': '', 'encoding': 'utf-8'}
+s is unicode True
+s is str True
+s is unicode True
+s is unicode False
+{'confidence': 0.99, 'language': 'Chinese', 'encoding': 'GB2312'}
