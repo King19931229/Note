@@ -41,3 +41,11 @@ s is str True
 s is unicode True
 s is unicode False
 {'confidence': 0.99, 'language': 'Chinese', 'encoding': 'GB2312'}
+
+【2018-04-13】Python二分查找模块bisect
+Python里可以用bisect实现二分查找减少代码量
+bisect.bisect_left(a, x, lo=0, hi=len(a)) 查找在a中插入x的位置 若存在与x相同的值 则返回第一个相同值的索引
+类似于c++的lower_bound
+
+bisect.bisect_right(a, x, lo=0, hi=len(a)) 查找在a中插入x的位置 若存在与x相同的值 则返回最后一个相同值的索引+1
+类似于c++的upper_bound
