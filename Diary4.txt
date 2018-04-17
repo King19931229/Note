@@ -49,3 +49,11 @@ bisect.bisect_left(a, x, lo=0, hi=len(a)) 查找在a中插入x的位置 若存�
 
 bisect.bisect_right(a, x, lo=0, hi=len(a)) 查找在a中插入x的位置 若存在与x相同的值 则返回最后一个相同值的索引+1
 类似于c++的upper_bound
+
+【2018-04-17】Qt Graphics View体系结构
+QGraphicsScene 为管理大量的items提供一个快速的接口 本身并不可见它只管理item
+QGraphicsItem QGraphicsScene中所有item的基类
+QGraphicsView 用来监视场景QGraphicsScene 实现其可视化
+坑:
+QGraphicsItem::boundingRect 返回的才是该item在场景QGraphicsScene中的实际位置
+QGraphicsItem::scenePos 和 QGraphicsItem::x QGraphicsItem::y 并不是
