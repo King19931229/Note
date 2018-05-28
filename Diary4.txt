@@ -57,3 +57,180 @@ QGraphicsView 用来监视场景QGraphicsScene 实现其可视化
 坑:
 QGraphicsItem::boundingRect 返回的才是该item在场景QGraphicsScene中的实际位置
 QGraphicsItem::scenePos 和 QGraphicsItem::x QGraphicsItem::y 并不是
+
+【2018-05-23】【1】Python is 与 == 区别
+1.is用于判断两个对象是否是同一个对象 即对象地址是否相同
+2.==用于判断两个对象内容是否相同 允许对象地址不同 会调用对象的__eq__方法(注意自定义
+类的默认__eq__方法是比较对象地址是否相同)
+例1:
+class Test:
+	def __init__(self, val):
+		self._val = val
+
+	# def __eq__(self, other):
+	# 	return self._val == other._val
+
+t0 = Test(10)
+t1 = Test(10)
+
+print t0 is t1
+print t0 == t1
+
+t1 = t0
+
+print t0 is t1
+print t0 == t1
+
+输出:
+False
+False
+True
+True
+
+例2:
+class Test:
+	def __init__(self, val):
+		self._val = val
+
+	def __eq__(self, other):
+		return self._val == other._val
+
+t0 = Test(10)
+t1 = Test(10)
+
+print t0 is t1
+print t0 == t1
+
+输出:
+False
+True
+
+【2018-05-23】【2】Python 对象__dict__属性
+# https://blog.csdn.net/lis_12/article/details/53521554
+Python下一切皆对象 每个对象都有多个属性(attribute) Python对属性有一套统一的管理方案
+1.非内建对象有__dict__属性 (__dict__是一个字典 key为属性名 val为属性的值)
+2.实例的__dict__仅存储与该实例相关的实例属性
+3.类的__dict__存储所有实例共享的变量和函数(类属性，方法等) 类的__dict__并不包含其父类的属性
+
+例:
+class TestBaseClass():
+	def base_func(self):
+		pass
+
+class TestClass(TestBaseClass):
+	def __init__(self, val):
+		self._val = val
+
+	def print_val(self):
+		print self._val
+
+int_val = 10
+list_val = []
+object_val = TestClass(int_val)
+
+# 无效 内建对象没有__dict__属性
+# print int_val.__dict__
+# print list_val.__dict__
+
+print TestBaseClass.__dict__
+print TestClass.__dict__
+print object_val.__dict__
+
+# 相当于 object_val.print_val()
+TestClass.__dict__["print_val"](object_val)
+
+输出:
+{'base_func': <function base_func at 0x02E5F930>, '__module__': '__main__', '__doc__': None}
+{'__module__': '__main__', 'print_val': <function print_val at 0x02E5F870>, '__doc__': None, '__init__': <function __init__ at 0x02E5F970>}
+{'_val': 10}
+10
+
+【2018-05-23】【3】Python dir函数
+1.dir()是Python提供的一个API函数 dir()函数会自动寻找一个对象的所有属性(包括从父类中继承的属性)
+2.dir()函数返回对象一个列表 里面储存的值为对象属性名
+3.内建对象也可以使用dir()函数
+
+例:
+class TestBaseClass():
+	def base_func(self):
+		pass
+
+class TestClass(TestBaseClass):
+	def __init__(self, val):
+		self._val = val
+
+	def print_val(self):
+		print self._val
+
+int_val = 10
+list_val = []
+object_val = TestClass(int_val)
+
+print dir(TestBaseClass)
+print dir(TestClass)
+print dir(object_val)
+
+输出:
+['__doc__', '__module__', 'base_func']
+['__doc__', '__init__', '__module__', 'base_func', 'print_val']
+['__doc__', '__init__', '__module__', '_val', 'base_func', 'print_val']
+
+【2018-05-28】Python多重继承
+除了从一个父类继承外 Python允许从多个父类继承 称为多重继承
+例:
+class BaseA(object):
+	def __init__(self):
+		# 一定要加上这句 否则派生类调用super(*, self).__init__()将不会调到
+		# 此基类的__init__
+		super(BaseA, self).__init__()
+
+		print "BaseA::__init__"
+		self._val = 'A'
+
+	def base_func(self):
+		print "BaseA::func", self._val
+
+class BaseB(object):
+	def __init__(self):
+		# 一定要加上这句 否则派生类调用super(*, self).__init__()将不会调到
+		# 此基类的__init__
+		super(BaseB, self).__init__()
+
+		print "BaseB::__init__"
+		self._val = 'B'
+
+	def base_func(self):
+		print "BaseB::func", self._val
+
+class Derived(BaseA, BaseB):
+	def __init__(self):
+		super(Derived, self).__init__()
+
+# 输出:
+# BaseB::__init__
+# BaseA::__init__
+derived = Derived()
+
+# 会调用到BaseA::func
+# 多重继承下基类尽量不要有同名函数
+# 输出:
+# BaseA::func A
+derived.base_func()
+
+# 显式调用BaseB::func
+# 输出:
+# BaseB::func A
+BaseB.base_func(derived)
+
+# 输出:
+# {'_val': 'A'} 即使是多重继承 某一成员对象只有一份
+print derived.__dict__
+
+# 输出: True
+print isinstance(derived, object)
+# 输出: True
+print isinstance(derived, BaseA)
+# 输出: True
+print isinstance(derived, BaseB)
+# 输出: True
+print isinstance(derived, Derived)
