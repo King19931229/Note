@@ -234,3 +234,10 @@ print isinstance(derived, BaseA)
 print isinstance(derived, BaseB)
 # 输出: True
 print isinstance(derived, Derived)
+
+【2018-06-04】Python 字符串转bool坑
+Python不能直接用类型转换把字符串转成bool
+bool("True") 与 bool("False") 值相同都为True
+bool转换在Python中 除了‘’ "" 0 () [] {} None为False 其他转换都为True
+所有只能通过字符串比较转换
+True if data == "True" else False
