@@ -241,3 +241,118 @@ bool("True") 与 bool("False") 值相同都为True
 bool转换在Python中 除了‘’ "" 0 () [] {} None为False 其他转换都为True
 所有只能通过字符串比较转换
 True if data == "True" else False
+
+【2018-06-08】C++ Python 交互
+// https://www.cnblogs.com/findumars/p/7124031.html
+通过C++调用Python脚本主要要用到一些Python提供的API
+因为实际上C++要调用的是Python的解释器
+例:
+C++:
+// 定义Python方法
+static PyObject* Sum(PyObject* self, PyObject *args)
+{
+	int a, b;
+	if(!PyArg_ParseTuple(args, "ii", &a, &b))
+	{
+		printf("args wrong\n");
+		return Py_False;
+	}
+	PyObject* ret = Py_BuildValue("i", a + b);
+	if(ret)
+		return ret;
+	return Py_None;
+}
+
+static PyObject* Sub(PyObject* self, PyObject *args)
+{
+	int a, b;
+	if(!PyArg_ParseTuple(args, "ii", &a, &b))
+	{
+		printf("args wrong\n");
+		return Py_False;
+	}
+	PyObject* ret = Py_BuildValue("i", a - b);
+	if(ret)
+		return ret;
+	return Py_None;
+}
+
+static PyMethodDef CalcMethods[] =
+{
+	// {方法名, 方法, 参数类型 通常为METH_VARARGS, 方法doc}
+	{"sum", Sum, METH_VARARGS, "calauate the sum"},
+	{"sub", Sub, METH_VARARGS, "calauate the sub"},
+	{NULL, NULL}
+};
+
+int main()
+{
+	// 初始化Python环境
+	Py_Initialize();
+	// 启动Python多线程支持
+	PyEval_InitThreads();
+
+	if(!Py_IsInitialized())
+	{
+		printf("Init fail\n");
+		return -1;
+	}
+	// C++ 往 Python 注入模块 （模块名, 方法列表, 模块doc)
+	PyObject* module = Py_InitModule3("calcuate", CalcMethods, "calcuate methods");
+	if(!module)
+	{
+		printf("Init module fail\n");
+		return -1;
+	}
+	// C++ import Python模块 (模块名）
+	module = PyImport_ImportModule("main");
+	// 获取Python对象属性 相当于Python getattr
+	PyObject* function = PyObject_GetAttrString(module, "Test");
+
+	if(function)
+	{
+		// 将C数据转化为Python数据
+		// https://blog.csdn.net/vampirem/article/details/12948955
+		PyObject* args = Py_BuildValue("(ii)", 10, 20);
+		if(args)
+		{
+			// 调用Python函数
+			PyObject* pyret = PyObject_CallObject(function, args);
+			if(pyret)
+			{
+				bool ret = false;
+				// 解析Python对象转化为C数据
+				if(PyArg_Parse(pyret, "b", &ret))
+				{
+					printf("The return value from python: %d\n", ret);
+				}
+				Py_DecRef(pyret);
+			}
+			Py_DecRef(args);
+		}
+		Py_DecRef(function);
+	}
+
+	Py_Finalize();
+}
+
+Python: main.py
+import calcuate
+
+def Test(a, b):
+	print calcuate.__doc__
+	print calcuate.__dict__
+
+	print calcuate.sum.__doc__, getattr(calcuate, "sum")(a, b)
+	# calcuate.sum(a, b)
+	print calcuate.sub.__doc__, getattr(calcuate, "sub")(a, b)
+	# calcuate.sub(a, b)
+
+	return True
+
+输出:
+calcuate methods
+{'__name__': 'calcuate', 'sum': <built-in function sum>, 'sub': <built-in function sub>, '__doc__': 'calcuate methods', '__package__': None}
+calauate the sum 30
+calauate the sub -10
+The return value from python: 1
