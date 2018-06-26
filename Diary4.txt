@@ -356,3 +356,19 @@ calcuate methods
 calauate the sum 30
 calauate the sub -10
 The return value from python: 1
+
+【2018-06-26】用SVN的SubWCRev管理同步项目版本号
+// http://blog.sina.com.cn/s/blog_75c9af020102vgh2.html
+// https://blog.csdn.net/flyfish1986/article/details/42493715
+1.添加TortoiseSVN的bin文件夹到环境变量path里
+2.定义一个版本头文件模版
+如: editor_version_template.h
+#define EDITOR_MAJOR_VERSION 0
+#define EDITOR_MINOR_VERSION 1
+#define EDITOR_REVISION_VERSION 0
+#define	EDITOR_BUILD_NUMBER $WCREV$ 
+#define EDITOR_FLAG "beta"
+3.在项目的预先生成事件命令行里加入命令以生成版本头文件
+如:
+subwcrev $(SolutionDir) $(ProjectDir)editor_version_template.h $(ProjectDir)editor_version.h
+4.项目引用生成出的版本头文件获取版本号
