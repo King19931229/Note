@@ -372,3 +372,59 @@ The return value from python: 1
 如:
 subwcrev $(SolutionDir) $(ProjectDir)editor_version_template.h $(ProjectDir)editor_version.h
 4.项目引用生成出的版本头文件获取版本号
+
+【2018-07-18】解决adb端口占用问题
+// https://www.jianshu.com/p/953dfe231479
+adb devices
+emulator-5554   device
+emulator-5582   host
+emulator-5580   host
+emulator-5584   host
+windows下dos命令窗口输入netstat -ano即可查看端口使用情况
+例如要查看8080端口号是否已经被占用就使用命令netstat -ano|findstr 8080
+找出当前的进程pid与端口的对应关系
+然后根据pid结束该进程
+taskkill /PID PID
+
+【2018-07-19】Python闭包变量
+// http://cndenis.iteye.com/blog/1754743
+在Python中 函数内部可以定义函数
+内层的函数可以读取外层函数的内置类型局部变量 但却不可以修改它
+例1:
+def myFunc():
+	val = 10
+	def subFunc():
+		print val
+	subFunc()
+
+myFunc()
+输出:10
+
+例2:
+def myFunc():
+	val = 10
+	def subFunc():
+		print val
+		val = 20
+	subFunc()
+
+myFunc()
+报错 UnboundLocalError: local variable 'val' referenced before assignment
+
+这个错误在Python 3.x中的解决方法是使用新增的关键词nonlocal
+但Python 2.x中没有这个关键词 可以使用对象属性解决
+例:
+class MyClass(object):
+	pass
+
+def myFunc():
+	o = MyClass()
+	o.val = 10
+	def subFunc():
+		print o.val
+		o.val = 20
+	subFunc()
+	print o.val
+
+myFunc()
+输出:10 20
