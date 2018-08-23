@@ -1,0 +1,62 @@
+【2018-07-20】Python with
+// https://www.cnblogs.com/DswCnblog/p/6126588.html
+// https://www.ibm.com/developerworks/cn/opensource/os-cn-pythonwith/index.html
+紧跟with后面的语句被求值后 返回对象的__enter__()方法被调用 这个方法的返回值将被赋值给as后面的变量
+当with后面的代码块全部被执行完之后 将调用前面返回对象的__exit__()方法
+例:
+class MyClass(object):
+	def __enter__(self):
+		print "__enter__"
+		return "enter"
+	def __exit__(self, type, value, trace):
+		print "__exit__"
+
+with MyClass() as message:
+	print message
+输出:
+__enter__
+enter
+__exit__
+
+【2018-08-23】Python map与reduce
+map()是 Python 内置的高阶函数 它接收一个函数 f 和一个 list
+并通过把函数 f 依次作用在 list 的每个元素上 得到一个新的 list 并返回
+例：
+myList = [1, 2, 3, 4, 5, 6, 7]
+myList2 = [7, 6, 5, 4, 3, 2, 1]
+# myList myList2 的元素分别作为lambda的输入
+mul_list = map(lambda x, y: x * y, myList, myList2)
+print mul_list
+
+def sqrt(x):
+	import math
+	return math.sqrt(x)
+
+# myList 的元素 作为 sqrt的输入
+sqrt_list = map(sqrt, myList)
+print sqrt_list
+
+def add(x, y):
+	return x + y
+
+输出:
+[7, 12, 15, 16, 15, 12, 7]
+[1.0, 1.4142135623730951, 1.7320508075688772, 2.0, 2.23606797749979, 2.449489742783178, 2.6457513110645907]
+
+reduce() 函数会对参数序列中元素进行累积
+函数将一个数据集合（链表 元组等）中的所有数据进行下列操作
+用传给 reduce 中的函数 function（有两个参数）先对集合中的第 1、2 个元素进行操作
+得到的结果再与第三个数据用 function 函数运算 最后得到一个结果
+
+例:
+myList = [1, 2, 3, 4, 5, 6, 7]
+sqrt_list = map(sqrt, myList)
+print sqrt_list
+
+def add(x, y):
+	return x + y
+
+list_sum = reduce(add, myList)
+print list_sum 
+输出:
+28
