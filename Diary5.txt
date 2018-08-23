@@ -18,7 +18,7 @@ __enter__
 enter
 __exit__
 
-【2018-08-23】Python map与reduce
+【2018-08-23】【1】Python map与reduce
 map()是 Python 内置的高阶函数 它接收一个函数 f 和一个 list
 并通过把函数 f 依次作用在 list 的每个元素上 得到一个新的 list 并返回
 例：
@@ -60,3 +60,44 @@ list_sum = reduce(add, myList)
 print list_sum 
 输出:
 28
+
+【2018-08-23】【2】Python *与**
+例:
+加了星号*的变量名会存放所有未命名的可变参数
+def func(x, *args):
+	print "x:", x
+	# args 为一个 tuple
+	print "args:", args
+
+func(10, 20, 30)
+输出：
+x: 10
+args: (20, 30)
+
+例:
+加了星号**的变量名会存放所有未命名的关键字参数
+def func(x, **kwagrs):
+	print "x:", x
+	# kwagrs 为一个 dict
+	print "kwagrs:", kwagrs
+
+func(10, y = 20, z = 30)
+输出：
+x: 10
+args: {'y': 20, 'z': 30}
+
+【2018-08-23】【3】list 另类赋值
+list = [1, 2, 3, 4, 5]
+# 遍历 list 对每一个元素 x 用 x * x 作用生成一个新的 sqr_list 
+sqr_list = [x * x for x in list]
+print sqr_list
+输出:
+[1, 4, 9, 16, 25]
+
+【2018-08-23】【4】sum 遍历一个可迭代对象并求和
+例:
+list = [1, 2, 3, 4, 5]
+sum_res = sum(list)
+print sum_res
+输出:
+15
