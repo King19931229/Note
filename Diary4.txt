@@ -384,7 +384,7 @@ windows下dos命令窗口输入netstat -ano即可查看端口使用情况
 例如要查看8080端口号是否已经被占用就使用命令netstat -ano|findstr 8080
 找出当前的进程pid与端口的对应关系
 然后根据pid结束该进程
-taskkill /PID PID
+taskkill /PID PID /F
 
 【2018-07-19】Python闭包变量
 // http://cndenis.iteye.com/blog/1754743

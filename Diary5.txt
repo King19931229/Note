@@ -101,3 +101,28 @@ sum_res = sum(list)
 print sum_res
 输出:
 15
+
+【2018-10-08】Android Studio
+AndroidManifest.xml位置
+Android
+	项目
+		manifests
+			AndroidManifest.xml
+
+.gradle位置
+Project
+	项目
+		build.gradle
+	build.gradle
+	settings.gradle
+
+【2018-10-12】Python 字典值修改
+dic = {'a':0, 'b':0}
+for key, val in dic.items():
+	# 并没有修改字典中的值
+	# val = 1
+	# 这样才真正修改了
+	dic[key] = 1
+print dic
+输出:
+{'a': 1, 'b': 1}
