@@ -126,3 +126,26 @@ for key, val in dic.items():
 print dic
 输出:
 {'a': 1, 'b': 1}
+
+【2018-10-31】【1】Python变量修改
+idx = 0
+# 遍历过程中实际上修改了上面定义的idx的值
+for idx in xrange(10):
+	pass
+print idx
+输出:
+9
+
+【2018-10-31】【2】Python列表判空
+def check(item):
+	if item:
+		print 1
+	else:
+		print 0
+item = [1, 2]
+check(item)
+item = []
+check(item)
+输出:
+1
+0
