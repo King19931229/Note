@@ -149,3 +149,92 @@ check(item)
 输出:
 1
 0
+
+【2018-11-15】【1】Python import
+1.函数内import module结束函数调用后module不会释放
+例:
+-->main.py(顶层脚本)
+def test():
+	import test
+	test.val = 1
+
+test()
+import test
+print test.val
+
+-->test.py
+val = 0
+输出:
+1
+
+2.脚本不会被import多于1次 对于顶层脚本被import后__name__将不再是__main__(与顶层脚本不是同一个脚本)
+例:
+1.
+-->main.py(顶层脚本)
+print "module:", __name__
+import test
+
+-->test.py
+print "module:", __name__
+import main
+
+-->test2.py
+print "module:", __name__
+import test
+输出:
+module: __main__
+module: test
+module: test2
+2.
+-->main.py(顶层脚本)
+print "module:", __name__
+import test
+
+-->test.py
+print "module:", __name__
+import main
+输出:
+module: __main__
+module: test
+module: main
+
+【2018-11-15】【2】Python判空
+Python对象判空 Python类有__nonzero__方法用于判断对象BOOL值 通常用于if语句中
+对于特殊类型 list dict tuple 可以直接用if语句判断是否为空
+例:
+def judge(obj):
+	if obj:
+		print "obj is True"
+	else:
+		print "obj is False"
+
+class Test(object):
+	def __init__(self, val):
+		self.val = val
+	def __nonzero__(self):
+		return self.val
+
+t = Test(False)
+judge(t)
+t = Test(True)
+judge(t)
+
+dict = {}
+list = []
+tuple = ()
+
+if not dict:
+	print "empty dict"
+
+if not list:
+	print "empty list"
+
+if not tuple:
+	print "empty tuple"
+
+输出:
+obj is False
+obj is True
+empty dict
+empty list
+empty tuple
