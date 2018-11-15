@@ -149,3 +149,51 @@ check(item)
 输出:
 1
 0
+
+【2018-11-15】Python import
+1.函数内import module结束函数调用后module不会释放
+例:
+-->main.py(顶层脚本)
+def test():
+	import test
+	test.val = 1
+
+test()
+import test
+print test.val
+
+-->test.py
+val = 0
+输出:
+1
+
+2.脚本不会被import多于1次 对于顶层脚本被import后__name__将不再是__main__(与顶层脚本不是同一个脚本)
+例:
+1.
+-->main.py(顶层脚本)
+print "module:", __name__
+import test
+
+-->test.py
+print "module:", __name__
+import main
+
+-->test2.py
+print "module:", __name__
+import test
+输出:
+module: __main__
+module: test
+module: test2
+2.
+-->main.py(顶层脚本)
+print "module:", __name__
+import test
+
+-->test.py
+print "module:", __name__
+import main
+输出:
+module: __main__
+module: test
+module: main
