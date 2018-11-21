@@ -238,3 +238,27 @@ obj is True
 empty dict
 empty list
 empty tuple
+
+【2018-11-21】【1】Python filter关键字
+listA = [1,2,3,4,5,6,7,8,9,10]
+listB = filter(lambda x: x % 2 == 0, listA)
+print listB
+输出:
+[2, 4, 6, 8, 10]
+
+【2018-11-21】【2】Python list comprehension
+# https://www.cnblogs.com/dadadechengzi/p/6292156.html
+list comprehension
+[expr for iter_var in iterable ] or [expr for iter_ in iterable if cond_expr]
+例:
+listA = [1,2,3,4,5,6,7,8,9,10]
+listB = [e**2 for e in listA]
+print listB
+listB = [e for e in listA if e % 2 == 0]
+print listB
+listB = [3 for e in listA]
+print listB
+输出:
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+[2, 4, 6, 8, 10]
+[3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
