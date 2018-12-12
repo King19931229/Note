@@ -36,9 +36,6 @@ def sqrt(x):
 sqrt_list = map(sqrt, myList)
 print sqrt_list
 
-def add(x, y):
-	return x + y
-
 输出:
 [7, 12, 15, 16, 15, 12, 7]
 [1.0, 1.4142135623730951, 1.7320508075688772, 2.0, 2.23606797749979, 2.449489742783178, 2.6457513110645907]
@@ -50,8 +47,6 @@ reduce() 函数会对参数序列中元素进行累积
 
 例:
 myList = [1, 2, 3, 4, 5, 6, 7]
-sqrt_list = map(sqrt, myList)
-print sqrt_list
 
 def add(x, y):
 	return x + y
@@ -274,3 +269,19 @@ genA = (e**2 for e in listA)
 print genA
 for e in genA:
 	print e
+
+【2018-12-12】Python数据类型与字节流互转
+# https://www.cnblogs.com/volcao/p/8807507.html
+struct.pack将Python数据转化为字节流
+struct.unpack将字节流转化为Python数据
+例:
+import struct
+with open('test.bin', 'wb') as f:
+	data = struct.pack('ccii', '0', '1', 200, 300)
+	f.write(data)
+with open('test.bin', 'rb') as f:
+	data = f.read()
+	data = struct.unpack('ccii', data)
+	print data
+输出:
+('0', '1', 200, 300)
