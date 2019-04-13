@@ -286,7 +286,7 @@ with open('test.bin', 'rb') as f:
 输出:
 ('0', '1', 200, 300)
 
-【2019-04-13】Python Pack Unpack
+【2019-04-13】【1】Python Pack Unpack
 # https://www.cnblogs.com/summer-cool/p/3885384.html
 python中还允许包裹方式的参数传递 这未不确定参数个数和参数类型的函数调用提供了基础
 def f(*a,**b)
@@ -344,3 +344,84 @@ test unpack
 (2, 3, 4)
 {'a': 4, 'b': 5}
 <------
+
+【2019-04-13】【2】Python 装饰器
+不带装饰器要求接受一个callable对象 并返回一个callable对象
+
+带参数的装饰起要求接受装饰器参数 返回一个callable对象
+该对象接受一个callable对象 并返回一个callable对象
+例:
+def test_org(message):
+	print "message:", message
+
+test = test_org
+test("without wapper")
+
+print "[wrapper function]"
+def inwapper(func):
+	def ret(*args, **kwargs):
+		print inwapper, args, kwargs
+		return func(*args, **kwargs)
+	return ret
+
+# test = inwapper(test_org)
+@inwapper
+def test(message):
+	print "message:", message
+test("with wapper")
+
+def outwapper(*args, **kwargs):
+	print outwapper, args, kwargs
+	def inwapper(func):
+		def ret(*args, **kwargs):
+			print inwapper, args, kwargs
+			return func(*args, **kwargs)
+		return ret
+	return inwapper
+
+# test = outwapper("outwapper")(test_org)
+@outwapper("outwapper")
+def test(message):
+	print "message:", message
+test("with outter wapper")
+
+class innerwraper_cls(object):
+	def __init__(self, func):
+		self.func = func
+	def __call__(self, *args, **kwargs):
+		print innerwraper_cls, args, kwargs
+		return self.func(*args, **kwargs)
+
+print "[wrapper cls]"
+# test = innerwraper_cls(test_org)
+@innerwraper_cls
+def test(message):
+	print "message:", message
+test("with wraper_cls")
+
+class outterwraper_cls(object):
+	def __init__(self, *args, **kwargs):
+		print outterwraper_cls, args, kwargs
+	def __call__(self, func):
+		return innerwraper_cls(func)
+
+# test = outterwraper_cls("outwapper")(test_org)
+@outterwraper_cls("outwapper cls")
+def test(message):
+	print "message:", message
+test("with outterwraper_cls")
+
+输出:
+message: without wapper
+[wrapper function]
+<function inwapper at 0x02533530> ('with wapper',) {}
+message: with wapper
+<function outwapper at 0x025335F0> ('outwapper',) {}
+<function inwapper at 0x025337F0> ('with outter wapper',) {}
+message: with outter wapper
+[wrapper cls]
+<class '__main__.innerwraper_cls'> ('with wraper_cls',) {}
+message: with wraper_cls
+<class '__main__.outterwraper_cls'> ('outwapper cls',) {}
+<class '__main__.innerwraper_cls'> ('with outterwraper_cls',) {}
+message: with outterwraper_cls
