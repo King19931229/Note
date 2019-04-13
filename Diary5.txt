@@ -285,3 +285,62 @@ with open('test.bin', 'rb') as f:
 	print data
 输出:
 ('0', '1', 200, 300)
+
+【2019-04-13】Python Pack Unpack
+# https://www.cnblogs.com/summer-cool/p/3885384.html
+python中还允许包裹方式的参数传递 这未不确定参数个数和参数类型的函数调用提供了基础
+def f(*a,**b)
+Pack:
+包裹参数传递的实现是在定义函数时在形参前面加上*或**
+*所对应的形参(如上面的a)会被解释为一个元组(tuple而**所对应的形参(如上面的b))会被解释为一个字典
+中规定非关键字传递的变量必须写在关键字传递变量的前面 所以混合使用*和**时肯定时*形参在**形参的前面
+常规形参要在非常规形参* **之前
+Unpack:
+把元组(列表)或字典作为参数传入时如果要适配包裹形式的形参定义
+按照元组(列表)用* 字典用**的方式"解包裹"传递即可
+
+例:
+def test_pack(*tuple, **dircetory):
+	print "------>"
+	print tuple
+	print dircetory
+	print "<------"
+
+def test_pack_swallower(swallower, *tuple, **dircetory):
+	print "------>"
+	print swallower
+	print tuple
+	print dircetory
+	print "<------"
+
+print "test_pack"
+test_pack(1,2,3,a=4,b=5)
+test_pack_swallower(1,2,3,a=4,b=5)
+print "test unpack"
+list = [1,2,3]
+tuple = (2,3,4)
+dircetory = {'a':4, 'b':5}
+test_pack(*list, **dircetory)
+test_pack_swallower(1, *tuple, **dircetory)
+
+输出:
+test_pack
+------>
+(1, 2, 3)
+{'a': 4, 'b': 5}
+<------
+------>
+1
+(2, 3)
+{'a': 4, 'b': 5}
+<------
+test unpack
+------>
+(1, 2, 3)
+{'a': 4, 'b': 5}
+<------
+------>
+1
+(2, 3, 4)
+{'a': 4, 'b': 5}
+<------
