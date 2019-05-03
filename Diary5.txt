@@ -466,3 +466,42 @@ after that you can check your configure in vim by inputting :echo $MYVIMRC
 
 	3.18 u(Undo)
 	3.19 Ctrl + r(Redo)
+
+【2019-05-03】bash
+[Navigation]
+1.cd(change directory)
+2.pushd(change directory and push directory into the stack)
+3.popd(change directory to the diectory on the top of the stack and pop it from stack)
+4.ls(list all the file and directory on current directory)
+5.pwd(print the current directory)
+6.which(locate the path of the command)
+7.history(show bash command in your history)
+8.locate(locate the file in your file system)
+9.sudo updatedb(update the datebase of locate command)
+10.file(show the file type)
+
+[Get help]
+1.whatis(show a short discription of what a command do)
+2.apropos(search discription of the command)
+3.man(show the manual of a command)
+
+[Work with file]
+1.mkdir(create a directory)
+2.touch(create a file which not exists not or update the time stamp of the file which exists)
+3.cp(copy file or directory)
+4.mv(rename a file or move a file)
+5.rm(remove file or directory)
+6.rmdir(remove empty directory)
+7.wc(show the rows,words,btyes count of file)
+
+[Text]
+1.cat(concatenate file and print on standard output)
+2.more/less(file perusal filter)
+3.nano(text editor)
+4.tr(replace,compress or delete string from standard input)
+
+[Redirection and piping]
+1.>(indicate the program output into a file to REPLACE previous data [2> to indicate stderr output,> or 1> indicate the stdout output.https://ryanstutorials.net/linuxtutorial/piping.php ])
+2.>>(indicate the program output into a file to APPEND previous data)
+3.<(indicate the file content output into a program)
+4.|(indicate the program output into another program)
