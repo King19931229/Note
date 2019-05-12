@@ -89,6 +89,96 @@ if (( (($age%2)) == 0 )); then echo your age is even
 else echo your age is odd
 fi
 
-note that if((exp)) is not useful for string comparation
-also space mush be kept between == otherwise error will occor for string compare
-and string compare must use '==', '>', '<', -eq -nq... is not allowed
+string compare example:
+str1=hello
+str2=world
+
+if [ $str1 = $str2 ]; then echo str1==str2
+elif [[ $str1 < $str2 ]]; then echo str1\<str2
+else echo str1\>str2
+fi
+
+output: str1<str2
+
+note that if((exp)) is not useful for string compare
+also for string compare '=' MUST be used, don't use '=='
+if you use '<' or '>' for string double '[' --> '[[' is needed otherwise use '\<'
+and string compare must use '=', '>', '<', -eq -nq... is not allowed
+
+【2019-05-12】shell
+1.regular expression compare
+example:
+read -p 'input a phone number: ' phone
+phone_format='^[1-9][0-9]{10}$'
+if [[ $phone =~ $phone_format ]]; then echo phone number is vaild
+fi
+input a phone number: 1234567891
+output: phone number is vaild
+
+2.IFS
+IFS The Internal Field Separator that is used for word splitting after expansion and to split lines into words with the read builtin command.
+The default value is space,tab,newline
+
+example:
+function test()
+{
+        echo '\$* is '$*''
+        for arg in $*
+        do
+                echo $arg
+        done
+}
+args="this is a test message"
+echo split paramters by space,tab,line
+test $args
+IFS=","
+echo split paramters by ,
+test $args
+args="this,is,a,test,message"
+test $args
+
+output:
+split paramters by space,tab,line
+\$* is this is a test message
+this
+is
+a
+test
+message
+split paramters by ,
+\$* is this is a test message
+this is a test message
+\$* is this is a test message
+this
+is
+a
+test
+message
+
+3.replacement for variable
+replace string in var by using ${var// /}
+
+[:alnum:]  Alphanumeric characters.
+[:alpha:]  Alphabetic characters.
+[:blank:]  Space or tab characters.
+[:cntrl:]  Control characters.
+[:digit:]  Numeric characters.
+[:graph:]  Characters that are both printable and visible.  (A space is printable, but not visible, while an a is both.)
+[:lower:]  Lower-case alphabetic characters.
+[:print:]  Printable characters (characters that are not control  characters.)
+[:punct:]  Punctuation characters (characters that are not letter, digits, control characters, or space characters).
+[:space:]  Space characters (such as space, tab, and formfeed, to  name a few).
+[:upper:]  Upper-case alphabetic characters.
+[:digit:] Characters that are hexadecimal digits.
+
+example:
+args="this is a test message"
+args=${args//t/T}
+echo $args
+#args=${args// /}
+args=${args//[[:space:]]/}
+echo $args
+
+output:
+This is a TesT message
+ThisisaTesTmessage

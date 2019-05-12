@@ -457,15 +457,16 @@ after that you can check your configure in vim by inputting :echo $MYVIMRC
 	3.10 a(Get into insert mode to append data after your current select letter)
 	3.11 A(Get into insert mode to append data in the end of you current select row)
 
-	3.12 Capital v(Get into blockwise visual mode)
+	3.12 v(Get into character visual mode)
 	3.13 V(Get into row visual mode)
-	3.14 v(Get into character visual mode)
+	3.14 Control v(Get into blockwise visual mode)
 	3.15 y after getting into visual mode(Copy the current selection)
-	3.16 p after getting into visual mode(Paste the current selection)
-	3.17 d after getting into visual mode(Delete the current selection)
+	3.16 d after getting into visual mode(Delete the current selection)
+	3.17 p(Paste the current selection)
 
 	3.18 u(Undo)
 	3.19 Ctrl + r(Redo)
+	3.20 ngg or nG or :n(Gogo to certain row, n for row number)
 
 【2019-05-03】bash
 [Navigation]
