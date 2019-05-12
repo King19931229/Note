@@ -105,7 +105,7 @@ also for string compare '=' MUST be used, don't use '=='
 if you use '<' or '>' for string double '[' --> '[[' is needed otherwise use '\<'
 and string compare must use '=', '>', '<', -eq -nq... is not allowed
 
-【2019-05-12】shell
+【2019-05-12】【1】shell
 1.regular expression compare
 example:
 read -p 'input a phone number: ' phone
@@ -182,3 +182,103 @@ echo $args
 output:
 This is a TesT message
 ThisisaTesTmessage
+
+【2019-05-13】【2】shell parameter expansion
+1.if the variable is not declared use newvalue instead
+${var-newvalue}
+2.if the variable is not declared or the the vaule of variable is empty, use newvalue instead
+${var:-newvalue}
+3.if the variable is not declared use newvalue instead, also assign the value into variable
+${var=newvalue}
+4.if the variable is not declared or the the vaule of variable is empty, use newvalue instead
+, also assign the value into variable
+${var:=newvalue}
+
+example:
+name=
+#if the variable of name is not declared use king instead
+echo 'echo '${name-"king"}
+#if the variable of name is not declared or the vaule of variable the is empty, use king instead
+echo 'echo '${name:-"king"}
+echo vaule of name is $name
+
+echo '--------------------'
+#if the variable of name2 is not declared use king instead also assign to name2
+echo 'echo '${name2="king"}
+echo vaule of name2 is $name2
+
+echo '--------------------'
+name3=
+#if the variable of name3 is not declared or the the vaule of variable is emtpy, use king instead, also assign to name3
+echo 'echo '${name3:="king"}
+echo vaule of name3 is $name3
+
+output:
+echo 
+echo king
+vaule of name is
+--------------------
+echo king
+vaule of name2 is king
+--------------------
+echo king
+vaule of name3 is king
+
+【2019-05-12】【3】shell case
+case $var in
+# value could be a regular expression
+value)
+	#do something if var is value
+	:;;
+value2)
+	#do something if var is value2
+	:;;
+*)
+	#fallback. do something for fallback case
+	:;;
+esac
+
+example:
+read -p "input your age: " age
+case $age in
+[0-4])
+	echo "age is between 0 to 4";;
+5)
+	echo "age is 5";;
+[6-9]|1[0-2])
+	echo "age is between 6 to 12";;
+#fallback
+*)
+	echo "you age is above 12";;
+esac
+
+read -p "do you want to goto work? yes or no: " work
+case $work in
+yes)
+	echo "wow. you really want to goto work";;
+no)
+	echo "yeah. i don't want to goto work either";;
+*)
+	echo "your answer is not either yes or no";;
+esac
+
+input:25
+output:you age is above 12
+
+input:no
+output:yeah. i don't want to goto work either
+
+【2019-05-12】【4】ternary operator
+(( exp ? (assigment for true) : (assigment for false) ))
+
+example:
+read -p "input your age: " age
+(( age >= 18 ? (work=1) : (work=0) ))
+if ((work)); then
+        echo you can you to work now
+else
+        echo you can not go work. great
+fi
+
+input:25
+output:you can you to work now
