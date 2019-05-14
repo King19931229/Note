@@ -90,15 +90,205 @@ if (( (($age%2)) == 0 )); then echo your age is even
 else echo your age is odd
 fi
 
-# note that if((exp)) is not useful for string comparation
-# also space mush be kept between == for number compare otherwise error will occor for string compare
-# and string compare must use '==', '>', '<', -eq -nq... is not allowed
+string compare example:
+str1=hello
+str2=world
+
+if [ $str1 = $str2 ]; then echo str1==str2
+elif [[ $str1 < $str2 ]]; then echo str1\<str2
+else echo str1\>str2
+fi
+
+output: str1<str2
+
+note that if((exp)) is not useful for string compare
+also for string compare '=' MUST be used, don't use '=='
+if you use '<' or '>' for string double '[' --> '[[' is needed otherwise use '\<'
+and string compare must use '=', '>', '<', -eq -nq... is not allowed
 
 【2019-05-06】【1】XCode 共享文件夹
 打开XCode工程 Info
 添加一项 Application supports iTunes file sharing = TRUE
 【2019-05-06】【2】Mac finder 显示全路径
 打开终端输入: defaults write com.apple.finder _FXShowPosixPathInTitle -bool TRUE;killall Finder
+
+【2019-05-12】【1】shell
+1.regular expression compare
+example:
+read -p 'input a phone number: ' phone
+phone_format='^[1-9][0-9]{10}$'
+if [[ $phone =~ $phone_format ]]; then echo phone number is vaild
+fi
+input a phone number: 1234567891
+output: phone number is vaild
+
+2.IFS
+IFS The Internal Field Separator that is used for word splitting after expansion and to split lines into words with the read builtin command.
+The default value is space,tab,newline
+
+example:
+function test()
+{
+        echo '\$* is '$*''
+        for arg in $*
+        do
+                echo $arg
+        done
+}
+args="this is a test message"
+echo split paramters by space,tab,line
+test $args
+IFS=","
+echo split paramters by ,
+test $args
+args="this,is,a,test,message"
+test $args
+
+output:
+split paramters by space,tab,line
+\$* is this is a test message
+this
+is
+a
+test
+message
+split paramters by ,
+\$* is this is a test message
+this is a test message
+\$* is this is a test message
+this
+is
+a
+test
+message
+
+3.replacement for variable
+replace string in var by using ${var// /}
+
+[:alnum:]  Alphanumeric characters.
+[:alpha:]  Alphabetic characters.
+[:blank:]  Space or tab characters.
+[:cntrl:]  Control characters.
+[:digit:]  Numeric characters.
+[:graph:]  Characters that are both printable and visible.  (A space is printable, but not visible, while an a is both.)
+[:lower:]  Lower-case alphabetic characters.
+[:print:]  Printable characters (characters that are not control  characters.)
+[:punct:]  Punctuation characters (characters that are not letter, digits, control characters, or space characters).
+[:space:]  Space characters (such as space, tab, and formfeed, to  name a few).
+[:upper:]  Upper-case alphabetic characters.
+[:digit:] Characters that are hexadecimal digits.
+
+example:
+args="this is a test message"
+args=${args//t/T}
+echo $args
+#args=${args// /}
+args=${args//[[:space:]]/}
+echo $args
+
+output:
+This is a TesT message
+ThisisaTesTmessage
+
+【2019-05-12】【2】shell parameter expansion
+1.if the variable is not declared use newvalue instead
+${var-newvalue}
+2.if the variable is not declared or the the vaule of variable is empty, use newvalue instead
+${var:-newvalue}
+3.if the variable is not declared use newvalue instead, also assign the value into variable
+${var=newvalue}
+4.if the variable is not declared or the the vaule of variable is empty, use newvalue instead
+, also assign the value into variable
+${var:=newvalue}
+
+example:
+name=
+#if the variable of name is not declared use king instead
+echo 'echo '${name-"king"}
+#if the variable of name is not declared or the vaule of variable the is empty, use king instead
+echo 'echo '${name:-"king"}
+echo vaule of name is $name
+
+echo '--------------------'
+#if the variable of name2 is not declared use king instead also assign to name2
+echo 'echo '${name2="king"}
+echo vaule of name2 is $name2
+
+echo '--------------------'
+name3=
+#if the variable of name3 is not declared or the the vaule of variable is emtpy, use king instead, also assign to name3
+echo 'echo '${name3:="king"}
+echo vaule of name3 is $name3
+
+output:
+echo 
+echo king
+vaule of name is
+--------------------
+echo king
+vaule of name2 is king
+--------------------
+echo king
+vaule of name3 is king
+
+【2019-05-12】【3】shell case
+case $var in
+# value could be a regular expression
+value)
+	#do something if var is value
+	:;;
+value2)
+	#do something if var is value2
+	:;;
+*)
+	#fallback. do something for fallback case
+	:;;
+esac
+
+example:
+read -p "input your age: " age
+case $age in
+[0-4])
+	echo "age is between 0 to 4";;
+5)
+	echo "age is 5";;
+[6-9]|1[0-2])
+	echo "age is between 6 to 12";;
+#fallback
+*)
+	echo "you age is above 12";;
+esac
+
+read -p "do you want to goto work? yes or no: " work
+case $work in
+yes)
+	echo "wow. you really want to goto work";;
+no)
+	echo "yeah. i don't want to goto work either";;
+*)
+	echo "your answer is not either yes or no";;
+esac
+
+input:25
+output:you age is above 12
+
+input:no
+output:yeah. i don't want to goto work either
+
+【2019-05-12】【4】ternary operator
+(( exp ? (assigment for true) : (assigment for false) ))
+
+example:
+read -p "input your age: " age
+(( age >= 18 ? (work=1) : (work=0) ))
+if ((work)); then
+        echo you can you to work now
+else
+        echo you can not go work. great
+fi
+
+input:25
+output:you can you to work now
 
 【2019-05-14】python metacalss
 # https://www.cnblogs.com/iamswf/p/4713749.html
