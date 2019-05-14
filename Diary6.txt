@@ -52,6 +52,7 @@ output:
 sum of 10 and 20 is 30
 (first 30 produced by direct call, the second one collect the res into sum then use echo to output it)
 [condition]
+# https://www.cnblogs.com/wangcp-2014/p/6704375.html
 1.receive input
 read -p "what is your name " name
 echo $name
@@ -89,6 +90,45 @@ if (( (($age%2)) == 0 )); then echo your age is even
 else echo your age is odd
 fi
 
-note that if((exp)) is not useful for string comparation
-also space mush be kept between == otherwise error will occor for string compare
-and string compare must use '==', '>', '<', -eq -nq... is not allowed
+# note that if((exp)) is not useful for string comparation
+# also space mush be kept between == for number compare otherwise error will occor for string compare
+# and string compare must use '==', '>', '<', -eq -nq... is not allowed
+
+【2019-05-06】【1】XCode 共享文件夹
+打开XCode工程 Info
+添加一项 Application supports iTunes file sharing = TRUE
+【2019-05-06】【2】Mac finder 显示全路径
+打开终端输入: defaults write com.apple.finder _FXShowPosixPathInTitle -bool TRUE;killall Finder
+
+【2019-05-14】python metacalss
+# https://www.cnblogs.com/iamswf/p/4713749.html
+你可以在实现一个类的时候为其添加__metaclass__属性
+这是该类的元类 类默认的元类是type
+元类就是创建类对象的类 可以把元类看做"类工厂"
+创建类对象时候python会在内存中通过__metaclass__创建类对象
+如果python没有找到__metaclass__ 它会继续在父类中寻找__metaclass__ 以此类推
+如果还是找不到__metaclass__ python就会用内置的type元类来创建这个类对象
+例:
+class MetaTest(type):
+	def __new__(mcs, name, bases, dict):
+		print "name: ", name
+		print "bases: ", bases
+		print "dict: ", dict
+
+		TEST_PROP = dict.get('TEST_PROP', '')
+		dict["TEST_PROP"] = "MODIFY TEST PROP"
+
+		return super(MetaTest, mcs).__new__(mcs, name, bases, dict)
+
+class TestClass(object):
+	__metaclass__ = MetaTest
+	TEST_PROP = "TEST PROP"
+
+if __name__ == '__main__':
+	t = TestClass()
+	print t.TEST_PROP
+输出:
+name:  TestClass
+bases:  (<type 'object'>,)
+dict:  {'__module__': '__main__', '__metaclass__': <class '__main__.MetaTest'>, 'TEST_PROP': 'TEST PROP'}
+MODIFY TEST PROP

@@ -467,6 +467,9 @@ after that you can check your configure in vim by inputting :echo $MYVIMRC
 	3.18 u(Undo)
 	3.19 Ctrl + r(Redo)
 
+	3.20 dd(delete[or cut] one row) d2d(delete[or cut] two row) and so on
+	3.21 yy(copy one row) y2y(copy two row) and so on
+
 【2019-05-03】bash
 [Navigation]
 1.cd(change directory)
