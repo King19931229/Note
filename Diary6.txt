@@ -322,3 +322,56 @@ name:  TestClass
 bases:  (<type 'object'>,)
 dict:  {'__module__': '__main__', '__metaclass__': <class '__main__.MetaTest'>, 'TEST_PROP': 'TEST PROP'}
 MODIFY TEST PROP
+
+【2019-05-17】【1】使用vnc远程连接mac
+1.mac里在
+用户偏好设置
+	共享->打开
+		屏幕共享
+		文件共享
+		远程登陆
+2.安装VNC-Viewer
+3.在VNC-Viewer登陆里输入ip登陆
+【2019-05-17】【2】iOS开发证书
+https://www.jianshu.com/p/f582683ef7a2
+https://www.jianshu.com/p/194f581e0699
+https://www.cnblogs.com/huangzizhu/p/4137571.html
+https://blog.csdn.net/bolted_snail/article/details/80764572
+1.bundle ID(APP ID)
+是每一个ios应用的全球唯一标识
+无论代码怎么改 图标和应用名称怎么换 只要bundle id没变 ios系统就认为这是同一个应用
+bundle id分为两种 Explicit App ID 与 Wildcard App ID(使用这种id的应用不能使用通知功能)
+2.iOS Certificates(证书)
+它的作用就是证明你的mac具有开发或发布某个开发者账号下应用的权限
+3.iOS Provisioning Profiles(描述文件)
+描述文件它用来标识某个设备是否具有安装某个应用的权限
+(简单来说就是应用和证书的关系 尤其注意证书和描述文件的过期日期 一旦过期应用就没法使用了)
+【2019-05-17】【3】iOS 命令行重签
+1.老的archive方式 不支持增量编译
+xcodebuild archive \
+-project *.xcodeproj \
+-scheme Game \
+-configuration $CONFIGURE \
+-archivePath $ARCHIVE_PATH \
+CODE_SIGN_IDENTITY='iPhone Developer' PROVISIONING_PROFILE='Automatic'
+
+xcodebuild -exportArchive \
+-archivePath $ARCHIVE_PATH \
+-exportPath $PRODUCT_PATH \
+-exportOptionsPlist ExportOptions.plist
+原料文件ExportOptions.plist可以从通过GUI archive生成后的目标文件夹里找到
+2.新的build方式 支持增量编译
+# embedded.mobileprovision 从苹果开发者页面下载
+# 从embedded.mobileprovision提取出Entitlements.plist保持embedded.mobileprovision
+# 的Entitlements字段与Entitlements.plist一致
+/usr/libexec/PlistBuddy -x -c "print :Entitlements " /dev/stdin <<< $(security cms -D -i embedded.mobileprovision) > Entitlements.plist
+/usr/libexec/PlistBuddy -c "Set :get-task-allow true" Entitlements.plist
+# 拷贝Info.plist 设置CFBundleIdentifier保证bundleID与embedded.mobileprovision一致
+TEMP_INFO_PLIST=Info.plist.tmp
+cp Info.plist $TEMP_INFO_PLIST
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_IDENTIFIER" $TEMP_INFO_PLIST
+/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" $TEMP_INFO_PLIST
+# 编译工程
+xcodebuild -project *.xcodeproj -scheme $SCHEME -configuration $CONFIGURE
+# 签名
+codesign --force --sign "$DEVELOPER" --identifier $BUNDLE_IDENTIFIER --entitlements Entitlements.plist --timestamp=none $GAMEAPP_PATH
