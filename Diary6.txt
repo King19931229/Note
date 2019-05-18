@@ -375,3 +375,182 @@ cp Info.plist $TEMP_INFO_PLIST
 xcodebuild -project *.xcodeproj -scheme $SCHEME -configuration $CONFIGURE
 # 签名
 codesign --force --sign "$DEVELOPER" --identifier $BUNDLE_IDENTIFIER --entitlements Entitlements.plist --timestamp=none $GAMEAPP_PATH
+
+【2019-05-18】【1】 shell IFS 作用 echo
+shell执行命令过程
+1.替换变量
+2.按照IFS参数划分命令参数(若参数以''或者""包围则当作一个参数)
+3.执行命令
+example:
+string="   This   is   a   test   string   "
+
+echo "string:$string"
+echo "before repalcing IFS"
+
+echo 'echo $string:'
+echo $string
+echo 'echo "$string:"'
+echo "$string"
+
+echo "after replacing IFS"
+IFS=''
+
+echo 'echo $string:'
+echo $string
+echo 'echo "$string:"'
+echo "$string"
+ouput:
+string:   This   is   a   test   string
+before repalcing IFS
+echo $string:
+This is a test string
+echo "$string:"
+   This   is   a   test   string
+after replacing IFS
+echo $string:
+   This   is   a   test   string
+echo "$string:"
+   This   is   a   test   string
+
+【2019-05-18】【2】shell parameter expansion trick for string
+1.get the of len fo a string
+${#string}
+2.splice the string
+${string:$beg}
+${string:$beg:$end}
+3.get the after part of the substring in a string
+${string#$substring}
+
+exmaple:
+string="This is a test string"
+# get len of the string
+echo "len of string is: ${#string}"
+# get string from 5 to end
+echo "${string:5}"
+# get string from 0 to 4(not included)
+echo "${string:0:4}"
+# get string at the begin of string "a "
+echo "${string#*"a "}"
+
+output:
+len of string is: 21
+is a test string
+This
+test string
+
+【2019-05-18】【3】shell looping
+1.while loop
+while [ condition ]; do
+	#continue
+	#break
+done
+
+example:
+echo "use while condition"
+# 1. while condition loop
+# while [ $loopnum -lt $loopcount ]; do
+while ((loopnum < loopcount)); do
+	echo "current loopnum is $loopnum"
+	# if (( $(($loopnum % 2)) == 0 )); then
+	# if (( (($loopnum % 2)) == 0 )); then
+	if (( ((loopnum % 2)) == 0 )); then
+		# loopnum=$(($loopnum + 1))
+		loopnum=$((loopnum + 1))
+		continue
+	fi
+	# if (($loopnum == 5)); then
+	if ((loopnum == 5)); then
+		echo "Is five !!!"
+		break
+	fi
+	loopnum=$((loopnum + 1))
+done
+
+ouput:
+use while condition
+current loopnum is 0
+current loopnum is 1
+current loopnum is 2
+current loopnum is 3
+current loopnum is 4
+current loopnum is 5
+Is five !!!
+
+2.until loop
+until [ condition ]; do
+	#continue
+	#break
+done
+
+example:
+until ((loopnum >= loopcount)); do
+	echo "current loopnum is $loopnum"
+	if (( ((loopnum % 2)) == 0 )); then
+		loopnum=$((loopnum + 1))
+		continue
+	fi
+	if ((loopnum == 3)); then
+		echo "Is Three` !!!"
+		break
+	fi
+	loopnum=$((loopnum + 1))
+done
+
+output:
+use until condition
+current loopnum is 0
+current loopnum is 1
+current loopnum is 2
+current loopnum is 3
+Is Three !!!
+
+【2019-05-18】【4】pipe doesn't work on read
+read只支持命令行参数不支持管道(标准输入输出)
+example:
+echo 'cat testfile.txt'
+cat testfile.txt
+
+echo 'testfile.txt | wc'
+cat testfile.txt | wc
+
+echo "use pipe:"
+echo 'cat testfile.txt | read content'
+cat testfile.txt | read content
+
+echo 'echo $content'
+echo "$content"
+
+echo "use redirection:"
+echo 'content < testfile.txt'
+read content < testfile.txt
+
+echo 'echo $content'
+echo "$content"
+output:
+cat testfile.txt
+this is a test
+testfile.txt | wc
+      1       4      15
+use pipe:
+cat testfile.txt | read content
+echo $content
+
+use redirection:
+content < testfile.txt
+echo $content
+this is a test
+
+【2019-05-18】【5】shell xargs
+# https://www.runoob.com/linux/linux-comm-xargs.html
+# https://segmentfault.com/q/1010000002962353/a-1020000002963602
+有些命令如ls rm仅支持命令行参数 不支持标准输入
+xargs可以将管道或标准输入(stdin)数据转换成命令行参数
+example:
+echo "testfile.txt" | xargs ls -la
+cp testfile.txt testfile.txt.bak
+echo "testfile.txt" | xargs rm -v
+cp testfile.txt.bak testfile.txt
+
+output:
+-rw-r--r-- 1 king king 9 5月  18 22:36 testfile.txt
+已删除'testfile.txt'
