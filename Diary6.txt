@@ -554,3 +554,132 @@ cp testfile.txt.bak testfile.txt
 output:
 -rw-r--r-- 1 king king 9 5月  18 22:36 testfile.txt
 已删除'testfile.txt'
+
+【2019-05-19】【1】shell 重定向
+# https://www.runoob.com/linux/linux-shell-io-redirections.html
+1.>(重定向程序输出到文件 覆盖原有内容)
+
+example:
+echo "this is a test message" | cat > testfile
+# redirection
+cat testfile > output.txt
+cat output.txt
+output:
+this is a test message
+
+2.>>(重定向程序输出到文件 追加原有内容)
+
+example:
+echo "this is a test message" | cat > testfile
+# redirection
+cat testfile > output.txt
+cat testfile >> output.txt
+cat output.txt
+output:
+this is a test message
+this is a test message
+
+3.<(以文件内容作为程序的标准输入)
+
+example:
+echo "this is a test message" | cat > testfile
+cat < testfile
+output:
+this is a test message
+
+4.<<tag(将开始标记 tag 和结束标记 tag 之间的内容作为程序的标准输入)
+
+example:
+cat << MSG
+this is a test message
+MSG
+output:
+this is a test message
+
+5.<<<input(以input作为程序的标准输入)
+example:
+cat <<< "this is a test message"
+output:
+this is a test message
+
+【2019-05-19】【2】shell 高级重定向
+# https://www.cnblogs.com/caolisong/archive/2007/04/25/726896.html
+一般情况下 每个 Unix/Linux 命令运行时都会打开三个文件：
+标准输入文件(stdin):stdin的文件描述符为0 Unix程序默认从stdin读取数据
+标准输出文件(stdout):stdout 的文件描述符为1 Unix程序默认向stdout输出数据
+标准错误文件(stderr):stderr的文件描述符为2 Unix程序会向stderr流中写入错误信息
+默认情况下, command > file 将 stdout 重定向到 file, command < file 将stdin 重定向到 file
+
+如果希望 stderr 重定向到 file 可以这样写
+command > file 2>&1
+
+exmaple:
+echo 'wc testfile > output.txt'
+wc testfile > output.txt
+echo 'cat output.txt'
+cat output.txt
+echo
+
+echo 'wc testfile nonexistfile > output.txt'
+wc testfile nonexistfile > output.txt
+echo 'cat output.txt'
+cat output.txt
+echo
+
+echo 'wc testfile nonexistfile 2> output.txt'
+wc testfile nonexistfile 2> output.txt
+echo 'cat output.txt'
+cat output.txt
+echo
+
+echo 'wc testfile nonexistfile &> output.txt'
+wc testfile nonexistfile &> output.txt
+echo 'cat output.txt'
+cat output.txt
+echo
+
+echo 'wc testfile nonexistfile > output.txt 2>&1'
+wc testfile nonexistfile > output.txt 2>&1
+echo 'cat output.txt'
+cat output.txt
+echo
+
+echo 'wc testfile nonexistfile 2> output.txt 1>&2'
+wc testfile nonexistfile 2> output.txt 1>&2
+echo 'cat output.txt'
+cat output.txt
+
+output:
+wc testfile > output.txt
+cat output.txt
+ 1  5 23 testfile
+
+wc testfile nonexistfile > output.txt
+wc: nonexistfile: 没有那个文件或目录
+cat output.txt
+ 1  5 23 testfile
+ 1  5 23 总用量
+
+wc testfile nonexistfile 2> output.txt
+ 1  5 23 testfile
+ 1  5 23 总用量
+cat output.txt
+wc: nonexistfile: 没有那个文件或目录
+
+wc testfile nonexistfile &> output.txt
+cat output.txt
+ 1  5 23 testfile
+wc: nonexistfile: 没有那个文件或目录
+ 1  5 23 总用量
+
+wc testfile nonexistfile > output.txt 2>&1
+cat output.txt
+ 1  5 23 testfile
+wc: nonexistfile: 没有那个文件或目录
+ 1  5 23 总用量
+
+wc testfile nonexistfile 2> output.txt 1>&2
+cat output.txt
+ 1  5 23 testfile
+wc: nonexistfile: 没有那个文件或目录
+ 1  5 23 总用量
