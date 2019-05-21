@@ -683,3 +683,79 @@ cat output.txt
  1  5 23 testfile
 wc: nonexistfile: 没有那个文件或目录
  1  5 23 总用量
+ 
+【2019-05-21】pyqt 信号
+# https://www.linuxzen.com/pyqt4-xin-hao-he-cao-xiang-jie.html
+# https://www.imooc.com/article/23738?block_id=tuijian_wz
+pyqt支持多种声明信号的方式
+
+1.在QObject类中定义QtCore.pyqtSignal类, 构造参数为其信号传递参数
+然后调用QtCore.pyqtSignal.connect连接信号和槽,QtCore.pyqtSignal.emit发射信号
+参数为信号传递参数
+
+2.直接用QtCore.QObject.connect方法连接信号槽,在连接中定义信号形式
+self.emit发射信号与信号参数
+
+QtCore.QObject.connect(self, QtCore.SIGNAL('oldstyle_signal()'), self.slot)
+self.emit(QtCore.SIGNAL('oldstyle_signal()'))
+
+3.对于qt对象自带的内置信号,直接调用 self.'信号名'.connect 连接信号槽
+例:
+class TestWindow(QtGui.QMainWindow):
+	# 1. define new style signal, signal object MUST be in the class
+	str_signal = QtCore.pyqtSignal(QtCore.QString)
+	int_signel = QtCore.pyqtSignal(int)
+
+	def __init__(self, app):
+		QtGui.QMainWindow.__init__(self)
+
+		# 1. new style signal connection
+		self.str_signal.connect(self.strslot)
+		self.int_signel.connect(self.intslot)
+
+		# 1. new style signal emit
+		self.str_signal.emit("test new style signal msg")
+		self.int_signel.emit(100)
+
+		# 2. old style signal connection
+		QtCore.QObject.connect(self, QtCore.SIGNAL('oldstyle_str_signal(QString)'), self.strslot)
+		QtCore.QObject.connect(self, QtCore.SIGNAL('oldstyle_int_signal(int)'), self.intslot)		
+
+		# 2. old style signal emit
+		self.emit(QtCore.SIGNAL('oldstyle_str_signal(QString)'), QtCore.QString("test old style signal msg"))		
+		self.emit(QtCore.SIGNAL('oldstyle_int_signal(int)'), -100)
+
+		# 3. yet another style signal emit
+		self.btn = QtGui.QPushButton("TestBtn", self)
+		self.connect(self.btn, QtCore.SIGNAL("clicked()"), self.testSlot)
+
+	@pyqtSlot()
+	def testSlot(self):
+		print "test slot called"
+
+	@pyqtSlot(QtCore.QString)
+	def strslot(self, msg):
+		print "strslot:", msg
+
+	@pyqtSlot(int)
+	def intslot(self, val):
+		print "intslot:", val
+
+class TestApp(QtGui.QApplication):
+	def __init__(self, arg):
+		super(TestApp, self).__init__(arg)
+
+	def init(self):
+		self.main_window = TestWindow(self)
+		self.main_window.show()
+
+APP = TestApp(sys.argv)
+def main():
+	APP.init()
+	sys.exit(APP.exec_())
+输出:
+strslot: test new style signal msg
+intslot: 100
+strslot: test old style signal msg
+intslot: -100
+test slot called (after you click the TestBtn)
