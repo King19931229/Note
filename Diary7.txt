@@ -1,0 +1,137 @@
+【2019-05-22】pyinstaller
+pyinstaller可以把py文件转化为可执行文件
+可以使用pyi-makespec生成中间文件,再用pyinstaller转化为可执行文件
+也可以使用直接pyinstaller转化为可执行文件
+注意使用--hidden-import参数保证隐式import的模块也被打包
+# https://pythonhosted.org/PyInstaller/man-pages.html
+# https://blog.csdn.net/king_mountian/article/details/81664599
+例:
+import os
+import subprocess
+
+def makespec(outname):
+	# 直接转化为可执行文件
+	# cmd = "pyinstaller"
+	cmd = "pyi-makespec"
+	args = [cmd]
+	base = "."
+	# 把所有的模块都加入到-hidden-import里
+	for root, dirs, files in os.walk(base):
+		for name in files:
+			if name.endswith(".py"):
+				module = root.replace("\\", ".").lstrip(".")
+				if module:
+					hidden_import = module + "." + name[:-3]
+				else:
+					hidden_import = name[:-3]
+				args.append("--hidden-import=%s" % hidden_import)
+	args.append("-F")
+	res = os.path.abspath("res").replace("\\", "/")
+	args.append("--paths=%s" % res)
+	args.append("-n%s" % outname)
+	args.append("makelink_gui.py")
+	subprocess.call(args, shell=True)
+
+def build():
+	name = "MakeLink"
+	makespec(name)
+	subprocess.call(r"pyinstaller %s.spec" % name, shell=True)
+
+def main():
+	build()
+
+if __name__ == '__main__':
+	main()
+	
+【2019-05-23】【1】python print >> 重定向
+# https://blog.csdn.net/xyh421/article/details/79513259
+这种方式基于print语句的扩展形式
+即print >> obj, expr
+其中，obj为一个file-like(尤其是提供write方法的)对象
+为None时对应标准输出(sys.stdout) expr将被输出到该文件对象中
+例:
+class SysOutHooker(object):
+	def __init__(self, org):
+		self.org = org
+	def write(self, msg):
+		msg = msg.rstrip("\r\n")
+		if not msg:
+			return
+		self.org.write("hooker: %s\n" % msg)
+
+hooker = SysOutHooker(sys.stdout)
+print >> hooker, "test message"
+print "test message"
+输出:
+hooker: test message
+test message
+
+【2019-05-23】【2】python subprocess 重定向
+# https://www.cnblogs.com/zhoug2020/p/5079407.html
+subprocess.Popen传入stdout, stderr控制子进程重定向
+stdout = None 或者 stderr = None 表示子进程不会做任何重定向工作 子进程的文件描述符会继承父进程的
+stderr = subprocess.STDOUT 表示子进程的标准错误也输出到标准输出
+stdout = subprocess.PIPE 或者 stderr = subprocess.PIPE 则表示需要创建一个新的管道给子进程进行重定向
+
+对sys.stdout和sys.stderr指定fileobj不会影响到进程的重定向
+只会影响到python里输出的重定向
+比如普通print之于sys.stdout traceback之于sys.stderr
+例:
+test.py [win32]:
+
+class SysOutHooker(object):
+	def __init__(self, org):
+		self.org = org
+	def write(self, msg):
+		pass
+
+# 这里是设置python输出钩子 不是进程输出重定向
+hooker = SysOutHooker(sys.stdout)
+sys.stdout = hooker
+err_hooker = SysOutHooker(sys.stderr)
+sys.stderr = err_hooker
+
+print "set stderr = None: "
+# subprocess.Popen 设置的stdout stderr 继承父进程 即是控制台输出
+p = subprocess.Popen(["echo", "echo test"], shell = True, stdout = None, stderr = None, universal_newlines = True)
+p = subprocess.Popen(["wrongcommand"], shell = True, stdout = None, stderr = None, universal_newlines = True)
+p.wait()
+print "p.stdout", p.stdout
+print "p.stderr", p.stderr
+
+print "set stderr = subprocess.STDOUT: "
+# subprocess.Popen 设置的stdout继承父进程 stderr定向到stdout 即是控制台输出
+p = subprocess.Popen(["echo", "echo test"], shell = True, stderr = subprocess.STDOUT, universal_newlines = True)
+p = subprocess.Popen(["wrongcommand"], shell = True, stderr = subprocess.STDOUT, universal_newlines = True)
+p.wait()
+print "p.stdout", p.stdout
+print "p.stderr", p.stderr
+
+print "set stderr = subprocess.PIPE: "
+# subprocess.Popen 设置的stdout stderr 输出到管道中
+p = subprocess.Popen(["echo", "echo test"], shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
+p = subprocess.Popen(["wrongcommand"], shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
+p.wait()
+print "p.stdout", p.stdout
+print "p.stderr", p.stderr
+
+【执行 python test.py】:
+输出:
+"echo test"
+'wrongcommand' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+"echo test"
+'wrongcommand' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+
+【执行 python test.py 2> nul 2>&1】
+输出:
+"echo test"
+'wrongcommand' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+"echo test"
+'wrongcommand' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+
+【执行 python test.py > nul 2>&1】:
+没有任何输出
