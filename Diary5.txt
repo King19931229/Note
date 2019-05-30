@@ -346,8 +346,7 @@ test unpack
 <------
 
 【2019-04-13】【2】Python 装饰器
-不带装饰器要求接受一个callable对象 并返回一个callable对象
-
+不带参数的装饰器要求接受一个callable对象 并返回一个callable对象
 带参数的装饰起要求接受装饰器参数 返回一个callable对象
 该对象接受一个callable对象 并返回一个callable对象
 例:

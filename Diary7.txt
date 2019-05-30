@@ -135,3 +135,131 @@ print "p.stderr", p.stderr
 
 【执行 python test.py > nul 2>&1】:
 没有任何输出
+
+【2019-05-23】【2】python subprocess 重定向到PIPE卡死
+# https://blog.csdn.net/xiaoxianerqq/article/details/78864330
+# https://www.cnblogs.com/chybot/p/5176118.html
+使用subprocess.Popen 重定向到subprocess.PIPE 如果管道内容太多
+而且使用wait等待子进程结束 则可能会卡死
+所以使用PIPE时不要使用wait而要使用communicate
+
+【2019-05-30】【1】python subprocess 重定向到PIPE同时一直取出PIPE的输出
+out = []
+err = []
+p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+for line in iter(p.stdout.readline, b''):
+	line = line.rstrip('\n')
+	line = line.rstrip('\r')
+	out.append(line)
+	out = '\n'.join(out)
+	p.stdout.close()
+
+for line in iter(p.stderr.readline, b''):
+	line = line.rstrip('\n')
+	line = line.rstrip('\r')
+	err.append(line)
+	err = '\n'.join(err)
+	p.stderr.close()
+
+p.wait()
+
+【2019-05-30】【2】Qt使用QStandardItemModel实现自定义树形控件需求
+TEST_NODE = {
+	'src':
+	{
+		'Package':
+		{
+			'Char': {},
+			'MapConfig': {},
+			'Repository': {},
+			'Text': {},
+			'Sounds': {},
+			'Video':{},
+			'Worlds': {}
+		}
+	},
+	'res':{}
+}
+
+# Qt QStandardItemModel封装了大部分树形model需要的需求
+# QStandardItemModel使用到了QStandardItem控件
+# 可以通过QStandardItem控件的setData(..., QtCore.Qt.UserRole)设置userdata
+# 可以使用itemFromIndex接口从index获取具体QStandardItem
+# 通过QStandardItem的data接口从而获取到控件的userdata
+class MyTreeModel(QtGui.QStandardItemModel):
+	def __init__(self, parent, dict_data):
+		super(MyTreeModel, self).__init__()
+		self.dict_data = dict_data
+		self.build(self.invisibleRootItem(), self.dict_data)
+
+	def build(self, parent_item, dict_data):
+		for key, value in dict_data.iteritems():
+			item = QtGui.QStandardItem(key)
+			item.setData(value, QtCore.Qt.UserRole)
+			parent_item.appendRow(item)
+			self.build(item, value)
+
+# 如果使用直接使用QAbstractItemModel实现树形model需要的需求会十分麻烦
+# 因为通常要在QAbstractItemModel返回的QModelIndex存下internalPointer
+# 而python里创建QModelIndex传入python对象作为指针通常会闪退
+# 而且还要实现一些QAbstractItemModel的纯虚函数
+# class MyTreeModel(QtCore.QAbstractItemModel):
+# 	def __init__(self, parent, dict_data):
+# 		super(MyTreeModel, self).__init__()
+# 		self.dict_data = dict_data
+
+# 	def index(self, row, column, parent_index):
+# 		ret = self.createIndex(row, column)
+# 		return ret
+
+# 	def parent(self, child_index):
+# 		return QtCore.QModelIndex()
+
+# 	def columnCount(self, parent_index):
+# 		return 1
+
+# 	def rowCount(self, parent_index):
+# 		if not parent_index.isValid():
+# 			return 1
+# 		return 0
+
+# 	def data(self, index, role):
+# 		if role == QtCore.Qt.DisplayRole:
+# 			return "Test"
+
+class MyTreeView(QtGui.QTreeView):
+	def mouseReleaseEvent(self, mouse_event):
+		if mouse_event.button() == QtCore.Qt.RightButton:
+			selected_idx_list = self.selectionModel().selectedRows(0)
+			for selected_idx in selected_idx_list:
+				item = self.model().itemFromIndex(selected_idx)
+				variant_obj = item.data(QtCore.Qt.UserRole)
+				user_data = variant_obj.toPyObject()
+		return super(MyTreeView, self).mouseReleaseEvent(mouse_event)
+
+class MainWindow(QtGui.QWidget):
+	def __init__(self, app):
+		QtGui.QWidget.__init__(self)
+		self.m_model = MyTreeModel(self, TEST_NODE)
+		self.m_treeview = MyTreeView(self)
+		self.m_treeview.setModel(self.m_model)
+		self.m_treeview.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+		self.m_treeview.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+		self.resize(1024, 550)
+
+class TestApp(QtGui.QApplication):
+	def __init__(self, arg):
+		super(TestApp, self).__init__(arg)
+
+	def init(self):
+		self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+		self.main_window = MainWindow(self)
+		self.main_window.show()
+
+def main():
+	APP = TestApp(sys.argv)
+	APP.init()
+	sys.exit(APP.exec_())
+
+if __name__ == "__main__":
+	main()
