@@ -143,6 +143,51 @@ print "p.stderr", p.stderr
 而且使用wait等待子进程结束 则可能会卡死
 所以使用PIPE时不要使用wait而要使用communicate
 
+【2019-05-26】创建与删除软链接和硬链接
+1.linux
+	1.1 给文件创造硬链接
+	ln SourceFile DestFile
+	1.2 给文件创造软链接
+	ln -s SourceFile DestFile
+	1.3 给文件夹创造硬链接(通常都会因为操作系统链接机制限制而失败[操作系统不支持])
+	ln -d SourceFolder DestFolder
+	1.4 给文件夹创造软链接
+	ln -s SourceFolder DestFolder
+2.windows
+	2.1 给文件创造硬链接
+	mkdir /H DestFile SourceFile
+	2.2 给文件创造软链接
+	mkdir DestFile SourceFile
+	2.3 给文件夹创造硬链接 [操作系统不支持]	
+	2.4 给文件夹创造软链接
+	mkdir /D DestFile SourceFile
+
+3.python下删除符号链接目录坑
+
+在windows下给文件夹创建软链接后
+如果用python的shutil.rmtree删除链接结果 会导致即使删除后目标文件夹(链接结果)被删除
+源文件夹还保留 但是源文件夹里的文件与文件夹会全部丢失 这个应该是shutil.rmtree的bug
+如果使用os.remove则会报WindowsError: [Error 5] 
+如果使用os.removedirs(其本身功能为只能递归删除空文件夹)则不会出现此问题
+
+linux下如果调用os.removedirs会报OSError: [Errno 20] Not a directory
+调用shutil.rmtree则会报raise OSError("Cannot call rmtree on a symbolic link")
+os.remove则不会报任何错误
+
+另外python的os.symlink只有在linux下有效 在windows下连接口都没有
+所以对链接的操作最好还是调用bat命令或者shell命令执行
+
+windows下
+删除符号链接目录 rmdir DestFolder
+删除符号链接文件 del DestFile
+linux下符号链接目录与符号链接文件 rm DestFolder
+
+4.删除源文件坑
+还有无论windows下还是linux下给一个文件(设为Source)创建了硬链接(设为HardResult)
+和软链接(设为SoftResult)后 此时即使源文件在操作系统的引用计数已经+1了
+但是如果删除了源文件(Source)后 软链接(SoftResult)还是会实效
+证明软链接在两个操作系统上都是根据路径来链接的
+
 【2019-05-30】【1】python subprocess 重定向到PIPE同时一直取出PIPE的输出
 out = []
 err = []
