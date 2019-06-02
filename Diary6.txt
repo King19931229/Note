@@ -377,29 +377,40 @@ xcodebuild -project *.xcodeproj -scheme $SCHEME -configuration $CONFIGURE
 codesign --force --sign "$DEVELOPER" --identifier $BUNDLE_IDENTIFIER --entitlements Entitlements.plist --timestamp=none $GAMEAPP_PATH
 
 【2019-05-18】【1】 shell IFS 作用 echo
+echo 分割后参数传给echo后以一整行输出
 shell执行命令过程
 1.替换变量
 2.按照IFS参数划分命令参数(若参数以''或者""包围则当作一个参数)
 3.执行命令
+
 example:
 string="   This   is   a   test   string   "
 
 echo "string:$string"
+
 echo "before repalcing IFS"
 
+# 没有使用""包括变量 IFS作用string头尾空格与单词之间多余空格被干掉
 echo 'echo $string:'
 echo $string
+
+# 使用""包括变量 IFS没有作用
 echo 'echo "$string:"'
 echo "$string"
 
 echo "after replacing IFS"
 IFS=''
 
+# 没有使用""包括变量 由于IFS为空
+# string头尾空格与单词之间多余空格被保留
 echo 'echo $string:'
 echo $string
+
+# 使用""包括变量 IFS没有作用
 echo 'echo "$string:"'
 echo "$string"
-ouput:
+
+output:
 string:   This   is   a   test   string
 before repalcing IFS
 echo $string:
@@ -411,6 +422,16 @@ echo $string:
    This   is   a   test   string
 echo "$string:"
    This   is   a   test   string
+
+another example:
+data="This,is,a,test"
+echo $data
+IFS=','
+echo $data
+
+output:
+This,is,a,test
+This is a test
 
 【2019-05-18】【2】shell parameter expansion trick for string
 1.get the of len fo a string

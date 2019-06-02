@@ -308,3 +308,177 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
+【2019-06-02】【1】shell for looping
+1.for ((i=v1; i <= v3; i=i+1))
+for ((i=1; i <= 3; i=i+1)); do
+	echo $i
+done
+
+2.for i in {v1..v3}
+for i in {1..3}; do
+	echo $i
+done
+
+3.for i in v1 v2 v3
+for i in 1 2 3; do
+	echo $i
+done
+
+4.
+当使用for i in v1 v2 v3...时候
+IFS是作用于每个变量上(v1 v2 v3...)
+当使用for i in $v时候
+IFS是作用于变量v上
+所以for中空格固定作为参数分割符号
+IFS作用于迭代中的每个变量
+
+example:
+data=1,2,3
+# IFS作用于1,2,3 默认IFS没有起到作用
+for i in 1,2,3; do
+	echo $i
+done
+# IFS作用于data 默认IFS没有起到作用
+for i in $data; do
+	echo $i
+done
+
+IFS=,
+# IFS作用于1,2,3 IFS起到作用分割了1,2,3
+# 1 2 3整体作为一个参数赋到i
+for i in 1,2,3; do
+	echo $i
+done
+
+# IFS作用于data IFS起到作用分割了1,2,3
+# 1 2 3分别作为参数赋到i
+for i in $data; do
+	echo $i
+done
+
+output:
+# IFS作用于1,2,3 默认IFS没有起到作用
+1,2,3
+# IFS作用于data 默认IFS没有起到作用
+1,2,3
+# IFS作用于1,2,3 IFS起到作用分割了1,2,3
+# 1 2 3整体作为一个参数赋到i
+1 2 3
+# IFS作用于data IFS起到作用分割了1,2,3
+# 1 2 3分别作为参数赋到i
+1
+2
+3
+
+【2019-06-02】【2】shell array
+1.define a array
+array=('that' 'is' '')
+2.index a array
+array[0]='this'
+3.append a variable in a array, not necessarily in the end of the array
+array[4]='test'
+array[3]='a'
+4.another way to append variable into a array
+array+=('!')
+5.loop a array
+for str in ${array[*]}; do
+	echo $str
+done
+
+example:
+array=('that' 'is' '')
+# index a variable in array
+array[0]='this'
+echo 'echo ${array[0]}'
+echo ${array[0]}
+
+# append a variable in a array, not necessarily in the end of the array
+array[4]='test'
+# append a variable in the position that more than the end of the array
+# the variable between the new variable and previous last variable
+# become empty
+echo 'echo ${array[3]}'
+echo ${array[3]}
+array[3]='a'
+
+echo 'echo ${array[4]}'
+echo ${array[4]}
+
+# append another array into a array
+# array+=('!')
+var='!'
+array+=($var)
+
+echo
+echo 'loop echo'
+for str in ${array[*]}; do
+	echo $str
+done
+
+output:
+echo ${array[0]}
+this
+echo ${array[3]}
+
+echo ${array[4]}
+test
+
+loop echo
+this
+is
+a
+test
+!
+
+【2019-06-02】【3】shell array
+1.define a array, element can be split by space, linebreak or tab
+array=('that' 'is'	'not'
+'a'
+'test'
+)
+
+2.delete a element of a array
+unset array[3]
+
+3.get the length of a array
+echo ${#array[@]}
+
+4.get the length of a element of a array
+echo ${#array[1]}
+
+5.sort the element of a array by using sort
+sort_array=($(for ele in ${array[*]}; do
+	echo $ele
+done | sort))
+
+example:
+# element can be split by space, linebreak or tab
+array=('that' 'is'	'not'
+'a'
+'test'
+)
+
+# delete a element of a array
+unset array[3]
+# get the length of a array
+echo ${#array[@]}
+# get the length of a element of a array
+echo ${#array[1]}
+
+# sort the element of a array by using sort
+sort_array=($(for ele in ${array[*]}; do
+	echo $ele
+done | sort))
+
+for ele in ${sort_array[*]}; do
+	echo $ele
+done
+
+output:
+4
+2
+is
+not
+test
+that
