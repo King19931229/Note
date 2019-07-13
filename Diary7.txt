@@ -482,3 +482,45 @@ is
 not
 test
 that
+
+【2019-07-13】【1】shell positional parameter
+1.$0 represent the path of the shell
+2.${10} the get of value of the parameter the index is bigger than 9
+3.shift to move the second place parameter the the first place
+
+example:
+shell.sh:
+echo "path of the shell is $0"
+
+sum=0
+
+while [[ $# -gt 0 ]]; do
+	sum=$((sum + $1))
+	# move the parameter from the secnod place to firsrt place
+	# (zero place is reserved for the path of the srcipt)
+	shift
+done
+
+echo "sum of parameters is $sum"
+
+./shell.sh  1 2 3
+
+output:
+path of the shell is ./shell.sh
+sum of parameters is 6
+
+【2019-07-13】【2】ubuntu安装JDK
+https://www.cnblogs.com/chenfq/p/8250823.html
+https://blog.csdn.net/tiryzheng/article/details/79427949
+1.到JDK官网https://www.oracle.com/technetwork/articles/javase/index-jsp-138363.html下载对应版本.deb安装包
+2.安装JDK对应.deb，使用sudo dpkg -i *.deb或者直接在资源浏览器里双击.deb文件在ubuntu软件中心安装
+3.打开~/.bashrc文件，追加内容
+JAVA_HOME=/usr/lib/jvm/jdk-12.0.1
+JRE_HOME=$JAVA_HOME/jre
+JAVA_BIN=$JAVA_HOME/bin
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib
+PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+export JAVA_HOME JRE_HOME PATH CLASSPATH
+（其中JAVA_HOME为JDK安装位置，使用.deb方式安装后java默认会放在/usr/lib/jvm/里）
+4.source ~/.bashrc使之立即生效
+5.java -version检验安装是否成功
