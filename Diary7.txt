@@ -483,6 +483,25 @@ not
 test
 that
 
+【2019-06-13】python zip
+# https://www.runoob.com/python/python-func-zip.html
+python zip函数可以把多个列表或者元组(广义上为可迭代的对象)压缩成一个列表(设为zip_result)
+压缩方式是使返回列表的每一个索引上元素都为传入列表或者元组的的对应索引上的元素组成的元组
+注意如果传入列表或者元组长度不一致 则返回列表长度与最短的对象相同
+然后可以再通过调用zip函数传入参数 *zip_result 可以获取另一个返回列表
+返回列表对应索引上的元组则第一次调用zip时候传入的列表或元组
+例:
+a = [1, 2, 3]
+b = ['a', 'b', 'c']
+c = [100.0, 200.0, 300.0]
+zip_result = zip(a, b, c)
+print zip_result
+d = zip(*zip_result)
+print d
+输出:
+[(1, 'a', 100.0), (2, 'b', 200.0), (3, 'c', 300.0)]
+[(1, 2, 3), ('a', 'b', 'c'), (100.0, 200.0, 300.0)]
+
 【2019-07-13】【1】shell positional parameter
 1.$0 represent the path of the shell
 2.${10} the get of value of the parameter the index is bigger than 9
@@ -524,3 +543,160 @@ export JAVA_HOME JRE_HOME PATH CLASSPATH
 （其中JAVA_HOME为JDK安装位置，使用.deb方式安装后java默认会放在/usr/lib/jvm/里）
 4.source ~/.bashrc使之立即生效
 5.java -version检验安装是否成功
+
+【2019-07-31】c# async wait
+// https://docs.microsoft.com/zh-cn/dotnet/csharp/programming-guide/concepts/async/index#dont-block-await-instead
+// https://docs.microsoft.com/zh-cn/dotnet/csharp/language-reference/keywords/async
+// https://cloud.tencent.com/developer/article/1445420
+1.await表达式后的代码为将被异步执行的代码，但实际上await并不会真正创建一个线程，
+Task.Run才会真正创建一个线程。因此如果await后的代码不是Task.Run的返回值，则不会达到真正创建线程的目的。 
+（即使没有await关键字，Task.Run也会创建线程，但线程是否会被创建，取决于编译器的优化）
+2.await表达式部分后的代码函数会在执行完异步函数后在异步线程环境里继续执行，直到遇到另一个await表达式。
+3.函数头里async关键字表示该函数存在异步调用，在调用后线程环境发生切换，因此里面必须存在await关键字。
+4.async函数存在3种类型的返回值。void，Task，Task<T>
+意义分别是直接退出控制流，设置 Task 的属性并退出，设置Task的属性和返回值（Result 属性）并退出。
+5.线程是否会被创建，取决于编译器的优化。如果只是对Task.Run的返回值执行await，编译器则可能把需要在新的异步线程里
+执行的代码在已经创建好的线程里执行，如果是对Task.Run返回的Task对象执行Wait，此时由于所有由Task创建的线程均
+不能被释放，这样会促使Task.Run创建与调用次数相同的线程。
+
+例:
+1.
+static void Main(string[] args)
+{
+	string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PreMain tid {tid}");
+	Task t = TestAsynsFake();
+	t.Wait();
+	tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PostMain call tid {tid}");
+}
+
+public static async Task TestAsynsFake(int depth = 0)
+{
+	if (depth > 10)
+		return;
+	string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"TestAsynsFake call dpeth:{depth} tid:{tid}");
+	await TestAsynsFake(depth + 1);
+}
+输出:
+// 并没有真正创建出线程
+PreMain tid 1
+TestAsynsFake call dpeth:0 tid:1
+TestAsynsFake call dpeth:1 tid:1
+TestAsynsFake call dpeth:2 tid:1
+TestAsynsFake call dpeth:3 tid:1
+TestAsynsFake call dpeth:4 tid:1
+TestAsynsFake call dpeth:5 tid:1
+TestAsynsFake call dpeth:6 tid:1
+TestAsynsFake call dpeth:7 tid:1
+TestAsynsFake call dpeth:8 tid:1
+TestAsynsFake call dpeth:9 tid:1
+TestAsynsFake call dpeth:10 tid:1
+PostMain call tid 1
+
+2.
+static void Main(string[] args)
+{
+	string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PreMain tid {tid}");
+	Task t = TestAsync();
+	t.Wait();
+	tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PostMain call tid {tid}");
+}
+
+public static async Task TestAsync(int depth = 0)
+{
+	if (depth > 10)
+		return;
+
+	var t = Task.Run(async () =>
+	{
+		string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+		Console.WriteLine($"TestAsync call dpeth:{depth} tid:{tid}");
+		await TestAsync(depth + 1);
+	});
+	await t;
+}
+输出:
+// 有创建线程但不是所有async函数都创建了线程
+PreMain tid 1
+TestAsync call dpeth:0 tid:3
+TestAsync call dpeth:1 tid:4
+TestAsync call dpeth:2 tid:4
+TestAsync call dpeth:3 tid:4
+TestAsync call dpeth:4 tid:4
+TestAsync call dpeth:5 tid:4
+TestAsync call dpeth:6 tid:4
+TestAsync call dpeth:7 tid:4
+TestAsync call dpeth:8 tid:4
+TestAsync call dpeth:9 tid:4
+TestAsync call dpeth:10 tid:4
+PostMain call tid 1
+
+3.
+static void Main(string[] args)
+{
+	string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PreMain tid {tid}");
+	Task t = TestAsyncReal();
+	t.Wait();
+	tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PostMain call tid {tid}");
+}
+public static async Task TestAsyncReal(int depth = 0)
+{
+	if (depth > 10)
+		return;
+
+	var t = Task.Run(async () =>
+	{
+		string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+		Console.WriteLine($"TestAsyncReal call dpeth:{depth} tid:{tid}");
+		await TestAsyncReal(depth + 1);
+	});
+	t.Wait();
+	// keep the compiler happy
+	await t;
+}
+输出:
+// 所有async函数都创建了线程
+PreMain tid 1
+TestAsyncReal call dpeth:0 tid:3
+TestAsyncReal call dpeth:1 tid:4
+TestAsyncReal call dpeth:2 tid:5
+TestAsyncReal call dpeth:3 tid:6
+TestAsyncReal call dpeth:4 tid:7
+TestAsyncReal call dpeth:5 tid:8
+TestAsyncReal call dpeth:6 tid:9
+TestAsyncReal call dpeth:7 tid:10
+TestAsyncReal call dpeth:8 tid:11
+TestAsyncReal call dpeth:9 tid:12
+TestAsyncReal call dpeth:10 tid:13
+PostMain call tid 1
+
+4.
+static void Main(string[] args)
+{
+	string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PreMain tid {tid}");
+	TestTask();
+	tid = Thread.CurrentThread.ManagedThreadId.ToString();
+	Console.WriteLine($"PostMain call tid {tid}");
+}
+
+public static void TestTask()
+{
+	var t = Task.Run(() =>
+	{
+		string tid = Thread.CurrentThread.ManagedThreadId.ToString();
+		Console.WriteLine($"TestTask calltid:{tid}");
+	});
+	t.Wait();
+}
+输出:
+// 没有await关键字照样创建线程，该线程由Task.Run创建
+PreMain tid 1
+TestTask calltid:3
+PostMain call tid 1
