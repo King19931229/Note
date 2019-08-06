@@ -700,3 +700,87 @@ public static void TestTask()
 PreMain tid 1
 TestTask calltid:3
 PostMain call tid 1
+
+【2019-08-06】c# 委托
+// https://www.cnblogs.com/wanglla/p/4257135.html
+委托delegate是一种特殊类型，基类为System.Delegate，通过C#特殊语法糖创建
+事件是一种特殊的委托类型实例，只能够在持有事件的对象内部发起广播
+例:
+public class Test
+{
+	// 自定义委托类型
+	public delegate void IntCallDelegate(int x);
+	// 定义自定义委托类型对象
+	public IntCallDelegate Delegate;
+	// 定义Delegate对象 所有委托类型都派生于System.Delegate
+	public Delegate GeneralDelegate;
+	// 特殊委托对象 只能够在持有该对象的对象内部发起广播
+	public event IntCallDelegate Event;// = new IntCallDelegate((x) => { });
+
+	public Test()
+	{
+
+	}
+
+	public void IntTest(int x)
+	{
+		Console.WriteLine($"ClassTest:{x}");
+	}
+
+	public void RaiseEvent(int x)
+	{
+		Event(x);
+	}
+}
+class Program
+{
+	static private Test c;
+	static void Main(string[] args)
+	{
+		c = new Test();
+
+		Console.WriteLine("----- DELEGATE -----");
+		c.Delegate += new Test.IntCallDelegate(c.IntTest);
+		c.Delegate += new Test.IntCallDelegate(IntTest);
+		c.Delegate(10);
+
+		Console.WriteLine("----- EVENT -----");
+		c.Event += new Test.IntCallDelegate(c.IntTest);
+		c.Event += new Test.IntCallDelegate(IntTest);
+		// 不允许
+		//c.Event(20);
+		c.RaiseEvent(20);
+
+		Console.WriteLine("----- GENERAL DELEGATE -----");
+		Type type = null;
+		MethodInfo info = null;
+
+		type = c.GetType();
+		info = type.GetMethod("IntTest");
+		//c.GeneralDelegate = Delegate.CreateDelegate(typeof(ClassTest.IntCallDelegate), c, info);
+		// 使用 Delegate类Combine接口 添加处理函数
+		c.GeneralDelegate = Delegate.Combine(c.GeneralDelegate, Delegate.CreateDelegate(typeof(Test.IntCallDelegate), c, info));
+
+		info = typeof(Program).GetMethod("IntTest", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+		c.GeneralDelegate = Delegate.Combine(c.GeneralDelegate, Delegate.CreateDelegate(typeof(Test.IntCallDelegate), info));
+
+		// 使用 Delegate类DynamicInvoke接口 促发delegate广播
+		c.GeneralDelegate.DynamicInvoke(30);
+	}
+
+	static void IntTest(int x)
+	{
+		Console.WriteLine($"Program:{x}");
+	}
+}
+
+输出:
+----- DELEGATE -----
+ClassTest:10
+Program:10
+----- EVENT -----
+ClassTest:20
+Program:20
+----- GENERAL DELEGATE -----
+ClassTest:30
+Program:30
