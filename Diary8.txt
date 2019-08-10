@@ -1,0 +1,224 @@
+【2019-08-03】WPF Style
+要在WPF某个控件上应用Style，如果在声明Style的时候指明Key则必须在
+具体控件的Style上BaseOn这个带有Key的基础Style。
+如果声明这个Style的时候没有指明Key，则该Style会全局被应用上。
+例:
+1.有效方式
+<Style TargetType="{x:Type Control}" x:Key="FontBase">
+	<Setter Property="FontFamily" Value="{StaticResource Tahoma Bold}"></Setter>
+</Style>
+
+<Style TargetType="{x:Type Label}" BasedOn="{StaticResource ResourceKey=FontBase}"></Style>
+
+2.无效方式
+<Style TargetType="{x:Type Label}" x:Key="FontBase">
+	<Setter Property="FontFamily" Value="{StaticResource Tahoma Bold}"></Setter>
+</Style>
+
+3.有效方式
+<Style TargetType="{x:Type Label}">
+	<Setter Property="FontFamily" Value="{StaticResource Tahoma Bold}"></Setter>
+</Style>
+
+【2019-08-10】python import
+# https://www.cnblogs.com/tp1226/p/8453854.html
+# https://www.cnblogs.com/lzc978/p/10105194.html
+1.from [package] import * 相当于把pakcage里面__init__.py的内容拷贝到import者py文件执行
+例:
+.
+	|--subpackage0
+	|	|--__init__.py
+	|	|--module10.py
+	|--main.py
+
+【__init__.py】
+print "[package] [{}] is imported".format(__name__)
+import module10
+import module11
+
+【module10.py】
+def func():
+	print "module0"
+
+【main.py】
+from subpackage0 import *
+module10.func()
+
+输出:
+[package] [subpackage0] is imported
+module0
+
+
+2.在package里面的__init__.py 里声明并赋值__all__变量会在from [package] import *的时候将
+__init__.py里面__all__变量的模块在import者py文件都执行一次import
+例:
+.
+	|--subpackage0
+	|	|--__init__.py
+	|	|--module10.py
+	|--main.py
+
+【__init__.py】
+print "[package] [{}] is imported".format(__name__)
+__all__ = ['module10']
+
+【module10.py】
+def func():
+	print "module0"
+
+【main.py】
+from subpackage0 import *
+module10.func()
+
+输出:
+[package] [subpackage0] is imported
+module0
+
+
+3.from [module] import * 相当于把module里面的对象拷贝（注意非引用）到import者py文件
+例:
+.
+	|--testmodule.py
+	|--main.py
+
+【testmodule.py】
+print "[module] [{}] imported".format(__name__)
+
+message = 'i am module: {}'.format(__name__)
+
+【main.py】
+from testmodule import *
+
+print "output message inside testmodule"
+print message
+
+message = 'i am main'
+import testmodule
+print "message inside testmodule remains unchanged"
+print testmodule.message
+
+testmodule.message = message
+print "message inside testmodule changes"
+print testmodule.message
+
+输出:
+[module] [testmodule] imported
+output message inside testmodule
+i am module: testmodule
+message inside testmodule remains unchanged
+i am module: testmodule
+message inside testmodule changes
+i am main
+
+4.from module import [object] 相当于把module里面的object拷贝（注意非引用）到import者py文件
+例:
+.
+	|--testmodule.py
+	|--main.py
+
+【testmodule.py】
+print "[module] [{}] imported".format(__name__)
+
+message = 'i am module: {}'.format(__name__)
+
+【main.py】
+from testmodule import message
+
+print "output message inside testmodule"
+print message
+
+message = 'i am main'
+import testmodule
+print "message inside testmodule remains unchanged"
+print testmodule.message
+
+testmodule.message = message
+print "message inside testmodule changes"
+print testmodule.message
+
+输出:
+[module] [testmodule] imported
+output message inside testmodule
+i am module: testmodule
+message inside testmodule remains unchanged
+i am module: testmodule
+message inside testmodule changes
+i am main
+
+
+5.import [package].[module] 或者 import [package] 都会把package里面__init__.py的内容执行一次
+（package被首次import __init__.py的内容会被执行一次）
+例:
+.
+	|--subpackage0
+	|	|--__init__.py
+	|	|--module10.py
+	|--main.py
+
+【__init__.py】
+print "[package] [{}] is imported".format(__name__)
+
+【module10.py】
+print "[module] [{}] imported".format(__name__)
+def func():
+	print "module0"
+
+【main.py】
+import subpackage0.module10
+
+输出:
+[package] [subpackage0] is imported
+[module] [subpackage0.module10] imported
+
+
+6.只有import [package].module (as ...)或者 import [package] (as ...)语法 没有 import ([package].)[module].[object] (as ...)语法
+例:
+.
+	|--subpackage0
+	|	|--__init__.py
+	|	|--module10.py
+	|--testmodule.py
+	|--main.py
+
+【__init__.py】
+print "[package] [{}] is imported".format(__name__)
+
+【module10.py】
+print "[module] [{}] imported".format(__name__)
+
+message = 'i am module: {}'.format(__name__)
+
+【testmodule.py】
+print "[module] [{}] imported".format(__name__)
+
+message = 'i am module: {}'.format(__name__)
+
+【main.py】
+import testmodule as m
+import subpackage0 as p
+
+try:
+	import testmodule.message
+except:
+	import traceback
+	traceback.print_exc()
+
+try:
+	import subpackage0.module10.message
+except:
+	import traceback
+	traceback.print_exc()
+
+输出:
+[module] [testmodule] imported
+[package] [subpackage0] is imported
+Traceback (most recent call last):
+  File "D:\Test\main.py", line 5, in <module>
+    import testmodule.message
+ImportError: No module named message
+[module] [subpackage0.module10] imported
+Traceback (most recent call last):
+  File "D:\Test\main.py", line 11, in <module>
+    import subpackage0.module10.message
+ImportError: No module named message
+[Finished in 0.1s]
