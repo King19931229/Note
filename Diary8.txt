@@ -222,3 +222,351 @@ Traceback (most recent call last):
     import subpackage0.module10.message
 ImportError: No module named message
 [Finished in 0.1s]
+
+【2019-08-11】【1】WPF RoutedEvent
+// https://docs.microsoft.com/zh-tw/dotnet/framework/wpf/advanced/routed-events-overview
+// https://www.cnblogs.com/JerryWang1991/archive/2013/03/29/2981103.html
+WPF RoutedEvent用于在WPF控件层次结构中传递事件
+例:
+<Window x:Class="MiniWindow.RouteEventTest"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:MiniWindow"
+        Title="RouteEventTest" Height="300" Width="300"
+		>
+	<StackPanel x:Name="Panel">
+		<Button Content="Button" x:Name="Button"></Button>
+	</StackPanel>
+</Window>
+
+public partial class RouteEventTest : Window
+{
+	/// <summary>
+	/// Tunnel Event
+	/// 该Event将从层次结构中的上层对象往下层对象传递
+	/// </summary>
+	public static readonly RoutedEvent TunnelEvent = EventManager.RegisterRoutedEvent(
+	"Tunnel", RoutingStrategy.Tunnel, typeof(RoutedEventHandler), typeof(RouteEventTest));
+
+	// Provide CLR accessors for the event
+	public event RoutedEventHandler Tunnel
+	{
+		add { AddHandler(TunnelEvent, value); }
+		remove { RemoveHandler(TunnelEvent, value); }
+	}
+
+	/// <summary>
+	/// Bubble Event
+	/// 该Event将从层次结构中的下层对象往上层对象传递
+	/// </summary>
+	public static readonly RoutedEvent BubbleEvent = EventManager.RegisterRoutedEvent(
+	"Bubble", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(RouteEventTest));
+
+	// Provide CLR accessors for the event
+	public event RoutedEventHandler Bubble
+	{
+		add { AddHandler(BubbleEvent, value); }
+		remove { RemoveHandler(BubbleEvent, value); }
+	}
+
+	/// <summary>
+	/// DirectEvent
+	/// 该Event将直接传递到目标对象
+	/// </summary>
+	public static readonly RoutedEvent DirectEvent = EventManager.RegisterRoutedEvent(
+	"Direct", RoutingStrategy.Direct, typeof(RoutedEventHandler), typeof(RouteEventTest));
+
+	// Provide CLR accessors for the event
+	public event RoutedEventHandler Direct
+	{
+		add { AddHandler(DirectEvent, value); }
+		remove { RemoveHandler(DirectEvent, value); }
+	}
+
+	public RouteEventTest()
+	{
+		InitializeComponent();
+
+		// Add handler for window
+		RoutedEventHandler windowHandler = new RoutedEventHandler((sender, e) =>
+		{
+			MessageBox.Show("Window receive event");
+		});
+		this.AddHandler(TunnelEvent, windowHandler);
+		this.AddHandler(BubbleEvent, windowHandler);
+		this.AddHandler(DirectEvent, windowHandler);
+
+		// Add handler for panel
+		RoutedEventHandler panelHandler = new RoutedEventHandler((sender, e) =>
+		{
+			MessageBox.Show("Panel receive event");
+		});
+		Panel.AddHandler(TunnelEvent, panelHandler);
+		Panel.AddHandler(BubbleEvent, panelHandler);
+		Panel.AddHandler(DirectEvent, panelHandler);
+
+		// Add handler for button
+		RoutedEventHandler buttonHandler = new RoutedEventHandler((sender, e) =>
+		{
+			MessageBox.Show("Button receive event");
+		});
+		Button.AddHandler(TunnelEvent, buttonHandler);
+		Button.AddHandler(BubbleEvent, buttonHandler);
+		Button.AddHandler(DirectEvent, buttonHandler);
+
+		// https://stackoverflow.com/questions/11336140/handle-tunneled-custom-routed-event
+		// 发起TunnelEvent 发起对象为Tunnel传递的终点
+		// 第一个参数为要发起的event 第二个参数将赋值到event处理函数中RoutedEventArgs的OriginalSource
+		Button.RaiseEvent(new RoutedEventArgs(TunnelEvent, this));
+
+		// 发起BubbleEvent 发起对象为Bubble传递的起点
+		// 第一个参数为要发起的event 第二个参数将赋值到event处理函数中RoutedEventArgs的OriginalSource
+		Button.RaiseEvent(new RoutedEventArgs(BubbleEvent, Button));
+
+		// 发起DirectEvent 发起对象为Direct的起点和终点
+		// 第一个参数为要发起的event 第二个参数将赋值到event处理函数中RoutedEventArgs的OriginalSource
+		Button.RaiseEvent(new RoutedEventArgs(DirectEvent, Button));
+	}
+}
+
+输出:
+"Window receive event"
+"Panel receive event"
+"Button receive event"
+
+"Button receive event"
+"Panel receive event"
+"Window receive event"
+
+"Button receive event"
+
+【2019-08-11】【2】WPF ControlTemplate
+WFP ControlTemplate用于重建控件样式,同时可以设置触发器响应控件属性更变
+例:
+<Window x:Class="MiniWindow.ControlTemplateTest"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:MiniWindow"
+        Title="ControlTemplateTest" Height="330" Width="300"
+		>
+
+	<Window.Resources>
+		<!-- assign a style for reusing -->
+		<Style x:Key="RedButtonStyle" TargetType="{x:Type Button}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type Button}">
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<!-- the behavour is to set the Foreground property into Yellow -->
+								<Setter Property="Foreground" Value="Yellow"></Setter>
+							</Trigger>
+						</ControlTemplate.Triggers>
+
+						<Grid>
+							<Ellipse Fill="Red" Width="150" Height="100"/>
+							<ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+						</Grid>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!-- assign a template for reusing -->
+		<ControlTemplate x:Key="GreenButtonTemplate" TargetType="{x:Type Button}">
+			<ControlTemplate.Triggers>
+				<!-- the trigger will work when the [property] of the button is IsMouseOver
+						and [value] is True	-->
+				<Trigger Property="IsMouseOver" Value="True">
+					<!-- the behavour is to set the Foreground property into Yellow -->
+					<Setter Property="Foreground" Value="Yellow"></Setter>
+				</Trigger>
+			</ControlTemplate.Triggers>
+
+			<Grid>
+				<Ellipse Fill="Green" Width="150" Height="100"/>
+				<ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+			</Grid>
+		</ControlTemplate>
+	</Window.Resources>
+
+	<StackPanel>
+		<!-- setup Template property inside a button-->
+		<Button Content="BlueButton" Click="Button_Click">
+			<Button.Template>
+				<!-- setup the TargetType to help the ContentPresenter show the content-->
+				<ControlTemplate TargetType="{x:Type Button}">
+					<!-- setup triggers to make hover effect-->
+					<ControlTemplate.Triggers>
+						<!-- the trigger will work when the [property] of the button is IsMouseOver
+						and [value] is True	-->
+						<Trigger Property="IsMouseOver" Value="True">
+							<!-- the behavour is to set the Foreground property into Yellow -->
+							<Setter Property="Foreground" Value="Yellow"></Setter>
+						</Trigger>
+					</ControlTemplate.Triggers>
+
+					<Grid>
+						<Ellipse Fill="Blue" Width="150" Height="100"/>
+						<ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+					</Grid>
+				</ControlTemplate>
+			</Button.Template>
+		</Button>
+
+		<!-- setup Style property inside a button-->
+		<Button Content="RedButton" Click="Button_Click" Style="{StaticResource RedButtonStyle}"/>
+
+		<!-- setup Template property inside a button-->
+		<Button Content="GreenButton" Click="Button_Click" Template="{StaticResource GreenButtonTemplate}"/>
+	</StackPanel>
+</Window>
+
+public partial class ControlTemplateTest : Window
+{
+	public ControlTemplateTest()
+	{
+		InitializeComponent();
+	}
+
+	private void Button_Click(object sender, RoutedEventArgs e)
+	{
+		MessageBox.Show("I am clicked");
+	}
+}
+
+【2019-08-11】【3】WPF DataTemplate
+WFP DataTemplate用于重建控件Content属性的显示方式
+例:
+<Window x:Class="MiniWindow.DataTemplateTest"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:MiniWindow"
+        Title="DataTemplateTest" Height="330" Width="300"
+		>
+
+	<Window.Resources>
+		<!-- assign a style for reusing -->
+		<Style x:Key="LabelTemplateStyle" TargetType="{x:Type ContentControl}">
+			<Setter Property="ContentTemplate">
+				<Setter.Value>
+					<DataTemplate>
+						<Label Content="{Binding Text}"></Label>
+					</DataTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<!-- assign a dataTemplate for reusing -->
+		<DataTemplate x:Key="TextBlockTemplate">
+			<TextBlock Text="{Binding Text}"></TextBlock>
+		</DataTemplate>
+
+	</Window.Resources>
+
+	<StackPanel>
+		<!-- setup the ContentTemplate property of a ContentControl -->
+		<!-- https://stackoverflow.com/questions/24534021/wpf-datatemplate-binding -->
+		<!-- setup binding for content to let DataTemplate able to bind attribute from the original binding source -->
+		<ContentControl Content="{Binding ContainerA}">
+			<ContentControl.ContentTemplate>
+				<DataTemplate>
+					<Button Content="{Binding Text}"></Button>
+				</DataTemplate>
+			</ContentControl.ContentTemplate>
+		</ContentControl>
+
+		<!-- setup the ContentTemplate property of by using Style -->
+		<ContentControl Content="{Binding ContainerB}" Style="{StaticResource LabelTemplateStyle}"/>
+
+		<!-- setup the ContentTemplate property of by using Template -->
+		<ContentControl Content="{Binding ContainerC}" ContentTemplate="{StaticResource TextBlockTemplate}"/>
+
+	</StackPanel>
+</Window>
+
+public partial class DataTemplateTest : Window, INotifyPropertyChanged
+{
+	public event PropertyChangedEventHandler PropertyChanged = (sender, e) => { };
+
+	public class ContentContainer : INotifyPropertyChanged
+	{
+		public event PropertyChangedEventHandler PropertyChanged = (sender, e) => { };
+		string _Text;
+		public string Text
+		{
+			get
+			{
+				return _Text;
+			}
+			set
+			{
+				_Text = value;
+				PropertyChanged(this, new PropertyChangedEventArgs("Text"));
+			}
+		}
+	};
+
+	ContentContainer _ContainerA;
+	public ContentContainer ContainerA
+	{
+		get
+		{
+			return _ContainerA;
+		}
+		set
+		{
+			_ContainerA = value;
+			PropertyChanged(this, new PropertyChangedEventArgs("ContainerA"));
+		}
+	}
+
+	ContentContainer _ContainerB;
+	public ContentContainer ContainerB
+	{
+		get
+		{
+			return _ContainerB;
+		}
+		set
+		{
+			_ContainerB = value;
+			PropertyChanged(this, new PropertyChangedEventArgs("ContainerB"));
+		}
+	}
+
+	ContentContainer _ContainerC;
+	public ContentContainer ContainerC
+	{
+		get
+		{
+			return _ContainerC;
+		}
+		set
+		{
+			_ContainerC = value;
+			PropertyChanged(this, new PropertyChangedEventArgs("ContainerC"));
+		}
+	}
+
+	public DataTemplateTest()
+	{
+		InitializeComponent();
+		// setup DataContext to this
+		DataContext = this;
+
+		ContainerA = new ContentContainer
+		{
+			Text = "TestButton"
+		};
+
+		ContainerB = new ContentContainer
+		{
+			Text = "TestLabel"
+		};
+
+		ContainerC = new ContentContainer
+		{
+			Text = "TestTextBlock"
+		};
+	}
+}
