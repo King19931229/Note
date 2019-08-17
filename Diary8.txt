@@ -570,3 +570,234 @@ public partial class DataTemplateTest : Window, INotifyPropertyChanged
 		};
 	}
 }
+
+【2019-08-17】【1】C# abstract virtual override new
+1.abstract用于修饰函数为抽象函数，该函数只能存在于abstract修饰的抽象类中，并且不能带有实现，
+是一种特殊的virtual
+2.virtual用于修饰函数为虚函数，允许子类重写该函数，用于动态函数绑定
+3.override用于修饰函数为重写父类虚函数，若子类要重写父类虚函数实现，重写函数必须带有override修饰
+4.new用于修饰子类重写父类常规静态绑定函数
+例:
+abstract class Base
+{
+	public void Func()
+	{
+		Console.WriteLine("Base::Func");
+	}
+
+	public virtual void VirtualFunc()
+	{
+		Console.WriteLine("Base::VirtualFunc");
+	}
+
+	public abstract void AbstractFunc();
+}
+
+class Derived : Base
+{
+	public new void Func()
+	{
+		Console.WriteLine("Derived::Func");
+	}
+
+	public override void VirtualFunc()
+	{
+		Console.WriteLine("Derived::VirtualFunc");
+	}
+
+	public override void AbstractFunc()
+	{
+		Console.WriteLine("Derived::AbstractFunc");
+	}
+}
+
+static void Main(string[] args)
+{
+	object obj = new Derived();
+
+	Console.WriteLine("----------regular func override----------");
+	(obj as Base).Func();
+	(obj as Derived).Func();
+
+	Console.WriteLine("----------virtual func override----------");
+	(obj as Base).VirtualFunc();
+	(obj as Derived).VirtualFunc();
+
+	Console.WriteLine("----------abstract func override----------");
+	(obj as Base).AbstractFunc();
+	(obj as Derived).AbstractFunc();
+}
+
+输出:
+----------regular func override----------
+Base::Func
+Derived::Func
+----------virtual func override----------
+Derived::VirtualFunc
+Derived::VirtualFunc
+----------abstract func override----------
+Derived::AbstractFunc
+Derived::AbstractFunc
+
+【2019-08-17】【2】C#类访问性修饰符 internal public
+C#类只能被两个访问修饰符修饰internal public
+internal表示类不能够跨模块访问，public表示类可以跨模块访问
+internal修饰的子类可以继承public修饰的父类，而public修饰的子类不能继承internal修饰的父类
+
+【2019-08-17】【3】C#类继承修饰符 abstract sealed
+abstract修饰的类对象不能被实例化，在此类中abstract修饰的函数不能带有实现，该类必须作为另一个
+子类的父类
+sealed修饰的类不能被其他子类继承，限制该类为继承层次之中的最后一层
+
+【2019-08-17】【4】WPF Command与RoutedCommand
+// https://stackoverflow.com/questions/1135983/wpf-icommand-vs-routedcommand
+WPF Command作用是为了让界面业务逻辑与界面(View)分离
+普通继承IComand接口的RelayCommand本身实现了业务逻辑
+而RoutedCommand本身没有实现业务逻辑，其业务逻辑是通过命令绑定CommandBinding绑定的
+并且CommandBinding只能绑定RoutedCommand
+例:
+<Window x:Class="MiniWindow.CommandTest"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:MiniWindow"
+        Title="CommandTest" Height="330" Width="300"
+		>
+
+	<Window.Resources>
+		<local:ViewModel x:Key="ViewModel"/>
+	</Window.Resources>
+
+	<StackPanel>
+		<Button x:Name="ViewModelButton" Content="ButtonA" Command="{Binding mCommand, Source={StaticResource ViewModel}}" CommandParameter="{Binding ElementName=ViewModelButton}"></Button>
+		<Button x:Name="RoutedCommandButton" Content="ButtonB"></Button>
+	</StackPanel>
+</Window>
+
+class ButtonCommand : ICommand
+{
+	Action<object> mAction;
+	Func<object, bool> mFunc;
+
+	public event EventHandler CanExecuteChanged = (sender, e) => { };
+
+	public bool CanExecute(object parameter)
+	{
+		return mFunc(parameter);
+	}
+
+	public void Execute(object parameter)
+	{
+		mAction(parameter);
+	}
+
+	public ButtonCommand(Action<object> execute, Func<object, bool> canExecute)
+	{
+		mAction = execute;
+		mFunc = canExecute;
+	}
+}
+
+class ViewModel : INotifyPropertyChanged
+{
+	ICommand _Command;
+	public ICommand mCommand
+	{
+		get
+		{
+			return _Command;
+		}
+		set
+		{
+			_Command = value;
+			PropertyChanged(this, new PropertyChangedEventArgs("mCommand"));
+		}
+	}
+
+	public ViewModel()
+	{
+		mCommand = new ButtonCommand(
+		   (parameter) =>
+		   {
+			   MessageBox.Show("I am clicked(ViewModel)");
+		   },
+			(parameter) =>
+			{
+				return true;
+			}
+		);
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged = (sender, e) => { };
+};
+
+/// <summary>
+/// CommandTest.xaml 的交互逻辑
+/// </summary>
+public partial class CommandTest : Window
+{
+	public CommandTest()
+	{
+		InitializeComponent();
+		// 创建一个RoutedCommand
+		RoutedCommand routedCommand = new RoutedCommand("MyCommand", typeof(CommandTest));
+		// 将这个RoutedCommand绑定到一个按钮上
+		RoutedCommandButton.Command = routedCommand;
+		// 指定RoutedCommand的目标 这将会成为ExecutedRoutedEventHandler CanExecuteRoutedEventHandler 事件被调用时候的
+		// RoutedEventArgs类型参数的 Source 成员
+		RoutedCommandButton.CommandTarget = ViewModelButton;
+		// 绑定Command 指定 RoutedCommand ExecutedRoutedEventHandler CanExecuteRoutedEventHandler
+		CommandBinding binding = new CommandBinding(
+			routedCommand,
+
+			new ExecutedRoutedEventHandler(
+			(sender, e) =>
+			{
+				MessageBox.Show(string.Format("I am clicked(RoutedCommand Source{0}", e.Source));
+				e.Handled = true;
+			}),
+
+			new CanExecuteRoutedEventHandler(
+			(sender, e) =>
+			{
+				e.CanExecute = true;
+			})
+		);
+		// 在层次结构中添加绑定
+		this.CommandBindings.Add(binding);
+		// 显式调用Command
+		routedCommand.Execute(null, this);
+	}
+}
+
+【2019-08-17】【5】C# partial关键字
+C#允许使用partial关键字修饰类使得类的实现可以拆开编写
+例:
+partial class TestClass
+{
+	public void FuncA()
+	{
+		Console.WriteLine("TestClass::FuncA");
+	}
+};
+
+partial class TestClass
+{
+	public void FuncB()
+	{
+		Console.WriteLine("TestClass::FuncB");
+	}
+};
+
+class Program
+{
+	static void Main(string[] args)
+	{
+		TestClass t = new TestClass();
+		t.FuncA();
+		t.FuncB();
+	}
+}
+
+输出:
+TestClass::FuncA
+TestClass::FuncB
