@@ -801,3 +801,146 @@ class Program
 输出:
 TestClass::FuncA
 TestClass::FuncB
+
+【2019-08-21】修复Python ImportError: No module named pkg_resources
+# https://www.easyaslinux.com/quick-fix/fix-for-importerror-no-module-named-pkg_resources-error/
+通常这个问题是因为升级python造成的，一个简单的方法是通过pip卸载掉原来的setuptools再重新安装新的setuptools
+pip uninstall setuptools
+pip install setuptools
+
+【2019-09-03】C# Equals与==
+// https://blog.csdn.net/liuchang19950703/article/details/82915380
+1.值类型上 Equals与==运算符行为一致，都是比较内容是否相等
+2.引用类型上 默认的Equals方法比较对象地址是否相同
+3.引用类型上 默认的==运算符就是比较对象地址是否相同(与默认的Equals没有区别 但默认==运算符没有调用到对象的Equals方法)
+4.重写对象==运算符方法 必须同时重写!=运算符方法
+5.重写对象==运算符方法或者Equals方法必须重写GetHashCode方法
+6.若要比较两个列表内容是否相同 最好调用List对象的SequenceEqual方法
+7.可以使用对象ReferenceEquals方法比较值类型或者引用类型 地址是否相等
+例:
+public struct TestStruct
+{
+	public int x;
+}
+
+public class TestClass
+{
+	public List<TestStruct> list;
+	int x;
+
+	public TestClass(int val)
+	{
+		list = new List<TestStruct>();
+		x = val;
+	}
+	// 重写Equals方法
+	public override bool Equals(object rhs)
+	{
+		if (!list.SequenceEqual(((TestClass)rhs).list))
+			return false;
+		if (x != ((TestClass)rhs).x)
+			return false;
+		return true;
+	}
+	public static bool operator ==(TestClass lhs, TestClass rhs)
+	{
+		return lhs.Equals(rhs);
+	}
+	// 重写 operator == 方法必须重写operator !=方法
+	public static bool operator !=(TestClass lhs, TestClass rhs)
+	{
+		return !(lhs == rhs);
+	}
+	// 重写 Equals 或者 operator == 方法必须重写GetHashCode方法
+	public override int GetHashCode()
+	{
+		return list.GetHashCode() * x.GetHashCode();
+	}
+}
+class Program
+{
+	static void Main(string[] args)
+	{
+		{
+			Console.WriteLine("----------Value----------");
+			int x = 0;
+			int y = 0;
+			// 值类型 比较值是否相等
+			Console.WriteLine("-----Equal-----");
+			bool equal = Equals(x, y);
+			Console.WriteLine(string.Format("{0}", equal));
+
+			// 值类型 比较对用是否相等
+			Console.WriteLine("-----ReferenceEquals-----");
+			bool refEqual = ReferenceEquals(x, y);
+			Console.WriteLine(string.Format("{0}", refEqual));
+
+			// 值类型 比较值是否相等
+			Console.WriteLine("-----object.Equals-----");
+			bool selfEqual = x.Equals(y);
+			Console.WriteLine(string.Format("{0}", selfEqual));
+
+			// 值类型 比较值是否相等
+			Console.WriteLine("----- == -----");
+			bool opEqualt = x == y;
+			Console.WriteLine(string.Format("{0}", opEqualt));
+		}
+
+		{
+			Console.WriteLine("----------Object----------");
+			TestClass a = new TestClass(10);
+			TestClass b = new TestClass(10);
+
+			a.list.Add(
+			new TestStruct
+			{
+				x = 20
+			});
+			b.list.Add(
+			new TestStruct
+			{
+				x = 20
+			});
+
+			// 引用类型 调用object Equals方法
+			// 如果对象重写了Equals方法则调用之
+			Console.WriteLine("-----Equal-----");
+			bool equal = Equals(a, b);
+			Console.WriteLine(string.Format("{0}", equal));
+
+			// 引用类型 比较引用是否相等
+			Console.WriteLine("-----ReferenceEquals-----");
+			bool refEqual = ReferenceEquals(a, b);
+			Console.WriteLine(string.Format("{0}", refEqual));
+
+			// 引用类型 调用对象Equal方法
+			Console.WriteLine("-----object.Equals-----");
+			bool selfEqual = a.Equals(b);
+			Console.WriteLine(string.Format("{0}", selfEqual));
+
+			// 引用类型 调用对象operator ==方法
+			Console.WriteLine("----- == -----");
+			bool opEqualt = a == b;
+			Console.WriteLine(string.Format("{0}", opEqualt));
+		}
+	}
+}
+输出：
+----------Value----------
+-----Equal-----
+True
+-----ReferenceEquals-----
+False
+-----object.Equals-----
+True
+----- == -----
+True
+----------Object----------
+-----Equal-----
+True
+-----ReferenceEquals-----
+False
+-----object.Equals-----
+True
+----- == -----
+True
