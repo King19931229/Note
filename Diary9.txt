@@ -101,3 +101,109 @@ int num = 0;
 	// n2完整类型为 const int& (与 int const& 无区别)
 	// ++n2;
 }
+
+【2020-2-12】C++ std::forward
+// https://www.jianshu.com/p/b90d1091a4ff
+// https://blog.csdn.net/coolwriter/article/details/80970718
+当我们将一个右值引用传入函数时 他在实参中有了命名 所以继续往下传或者调用其他函数时
+根据C++标准的定义 这个参数变成了一个左值 那么他永远不会调用接下来函数的右值版本
+这可能在一些情况下造成拷贝。为了解决这个问题 C++11引入了完美转发
+根据右值判断的推倒 调用forward传出的值
+若原来是一个右值 那么他转出来就是一个右值 否则为一个左值
+例:
+#include <cstdio>
+#include <algorithm>
+
+template<typename T2>
+void TemplateRefFunc(T2&& t)
+{
+	printf("rvalue reference\n");
+	t = (T2)1;
+}
+
+template<typename T2>
+void TemplateRefFunc(T2& t)
+{
+	printf("lvalue reference\n");
+	t = (T2)0;
+}
+
+template<typename T>
+void UniversalTemplateForwardFunc(T&& t)
+{
+	TemplateRefFunc(std::forward<T>(t));
+}
+
+template<typename T>
+void UniversalTemplateFunc(T&& t)
+{
+	TemplateRefFunc(t);
+}
+
+int main()
+{
+	printf("test case 1:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		int &val3 = val;
+
+		printf("val a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("val3 is a lvalue reference\n");
+
+		printf("call TemplateRefFunc(std::forward<decltype(val)>(val)): ");
+		TemplateRefFunc(std::forward<decltype(val)>(val));
+		printf("call TemplateRefFunc(std::forward<decltype(val2)>(val2)): ");
+		TemplateRefFunc(std::forward<decltype(val2)>(val2));
+		printf("call TemplateRefFunc(std::forward<decltype(val3)>(val3)): ");
+		TemplateRefFunc(std::forward<decltype(val3)>(val3));
+	}
+	printf("test case 2:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		printf("val a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("call UniversalTemplateForwardFunc(val): ");
+		UniversalTemplateForwardFunc(val);
+		printf("call UniversalTemplateForwardFunc(val2): ");
+		UniversalTemplateForwardFunc(val2);
+		printf("call UniversalTemplateForwardFunc(std::move(val2)): ");
+		UniversalTemplateForwardFunc(std::move(val2));
+	}
+	printf("test case 3:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		printf("val is a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("call UniversalTemplateFunc(val): ");
+		UniversalTemplateFunc(val);
+		printf("call UniversalTemplateFunc(val2): ");
+		UniversalTemplateFunc(val2);
+		printf("call UniversalTemplateFunc(std::move(val2)): ");
+		UniversalTemplateFunc(std::move(val2));
+	}
+	return 0;
+}
+输出:
+test case 1:
+val a value
+val2 is a rvalue reference
+val3 is a lvalue reference
+call TemplateRefFunc(std::forward<decltype(val)>(val)): rvalue reference
+call TemplateRefFunc(std::forward<decltype(val2)>(val2)): rvalue reference
+call TemplateRefFunc(std::forward<decltype(val3)>(val3)): lvalue reference
+test case 2:
+val a value
+val2 is a rvalue reference
+call UniversalTemplateForwardFunc(val): lvalue reference
+call UniversalTemplateForwardFunc(val2): lvalue reference
+call UniversalTemplateForwardFunc(std::move(val2)): rvalue reference
+test case 3:
+val is a value
+val2 is a rvalue reference
+call UniversalTemplateFunc(val): lvalue reference
+call UniversalTemplateFunc(val2): lvalue reference
+call UniversalTemplateFunc(std::move(val2)): lvalue reference
