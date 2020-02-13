@@ -207,3 +207,198 @@ val2 is a rvalue reference
 call UniversalTemplateFunc(val): lvalue reference
 call UniversalTemplateFunc(val2): lvalue reference
 call UniversalTemplateFunc(std::move(val2)): lvalue reference
+
+【2020-2-13】C++ 复制构造 移动构造
+1.类定义复制构造函数后 默认的移动构造函数会被删除
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(const Test& rhs)
+	{
+		printf("test lvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+运行期输出:
+test default ctor
+test lvalue ctor
+(调用到复制构造函数 因此没有调用到移动构造函数)
+
+2.类定义移动构造函数后 默认的复制构造函数会被删除
+例:
+template<typename T>
+T Call()
+{
+	T a;
+	T b(a);
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(Test&& rhs)
+	{
+		printf("test rvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+编译器输出:
+C2280	“Test::Test(const Test &)”: 尝试引用已删除的函数
+
+3.对象按值返回 会优先匹配移动构造函数
+例:
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(const Test& rhs)
+	{
+		printf("test lvalue ctor\n");
+	}
+	Test(Test&& rhs)
+	{
+		printf("test rvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+
+运行期输出:
+test default ctor
+test rvalue ctor
+
+4.默认的移动构造函数和复制构造函数会对对象的成员调用其对应的移动构造或者复制构造
+例1:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+运行期输出:
+small default ctor
+big default ctor
+small rvalue ctor
+(调用到Big的默认移动构造 其实现则对对象成员同样执行移动构造)
+
+例2:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+	Big(const Big& rhs) = default;
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+运行期输出:
+small default ctor
+big default ctor
+small rvalue ctor
+(调用到Big的默认复制构造 其实现则对对象成员同样执行复制构造)
