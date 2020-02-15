@@ -402,3 +402,237 @@ small default ctor
 big default ctor
 small rvalue ctor
 (调用到Big的默认复制构造 其实现则对对象成员同样执行复制构造)
+
+【2020-2-15】【1】C++ Lambda 按值捕获静态变量实际上只是按照引用捕获
+C++ Lambda 按值捕获静态变量实际上只是按照引用捕获
+并没有生成值的拷贝
+例:
+#include <cstdio>
+
+#pragma warning(disable: 4477)
+
+int main()
+{
+	int localVal = 0;
+	static int staticVal = 0;
+	
+	printf("localVal address outside lambda: 0x%08x\n", &localVal);
+	printf("staticVal address outside lambda: 0x%08x\n", &staticVal);
+
+	auto copy = [=]()
+	{
+		printf("copy caputure\n");
+		printf("localVal address inside lambda: 0x%08x\n", &localVal);
+		printf("staticVal address inside lambda: 0x%08x\n", &staticVal);
+	};
+	copy();
+
+	auto ref = [&]()
+	{
+		printf("reference caputure\n");
+		printf("localVal address inside lambda: 0x%08x\n", &localVal);
+		printf("staticVal address inside lambda: 0x%08x\n", &staticVal);
+	};
+	ref();
+}
+输出:
+localVal address outside lambda: 0x0034f738
+staticVal address outside lambda: 0x01061404
+copy caputure
+localVal address inside lambda: 0x0034f72c
+staticVal address inside lambda: 0x01061404
+reference caputure
+localVal address inside lambda: 0x0034f738
+staticVal address inside lambda: 0x01061404
+
+【2020-2-15】【2】C++定义析构函数将会压制移动(move)成员函数的自动生成
+C++定义析构函数将会压制移动(move)成员函数的自动生成
+例:
+1.
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+输出:
+small default ctor
+big default ctor
+small rvalue ctor
+
+2.
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+	~Big() = default;
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+输出:
+small default ctor
+big default ctor
+small lvalue ctor
+【2020-2-15】【3】C++返回值优化会对函数按值传递形参和函数局部变量优先调用移动构造函数
+C++返回值优化会对函数按值传递形参和函数局部变量优先调用移动构造函数(按引用传递形参
+依旧需要转换为右值引用才能获得移动优化)
+除非调用std::remove_reference或类似手法压制该优化
+
+例1:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+template<typename T>
+T CallNORVO(T val)
+{
+	return static_cast<std::remove_reference<T>::type>(val);
+}
+
+template<typename T>
+T CallRVO(T val)
+{
+	return val;
+}
+
+int main()
+{
+	printf("Call suppress RVO\n");
+	CallNORVO(Small());
+	printf("Call dont't suppress RVO\n");
+	CallRVO(Small());
+}
+输出:
+Call suppress RVO
+small default ctor
+small lvalue ctor
+Call dont't suppress RVO
+small default ctor
+small rvalue ctor
+
+例2:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+template<typename T>
+T CallRef(T& val)
+{
+	return val;
+}
+
+template<typename T>
+T CallMoveRef(T& val)
+{
+	return std::move(val);
+}
+
+int main()
+{
+	printf("Call pass paramters by reference\n");
+	CallRef(Small());
+	printf("Call pass paramters by reference and move when return\n");
+	CallMoveRef(Small());
+}
+输出:
+Call pass paramters by reference
+small default ctor
+small lvalue ctor
+Call pass paramters by reference and move when return
+small default ctor
+small rvalue ctor
