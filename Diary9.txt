@@ -636,3 +636,68 @@ small lvalue ctor
 Call pass paramters by reference and move when return
 small default ctor
 small rvalue ctor
+
+【2020-2-17】【1】C++ 枚举类
+1.枚举类默认定义底层类型为int
+2.普通枚举规则上应该按照枚举成员推导底层类型 但VC上测试都为int
+3.枚举类枚举成员不支持隐式转型
+例1:
+enum Enum
+{
+	Enum = 0xFFFFFFFFFFFFFFF
+};
+
+enum EnumLongLong : long long
+{
+	EnumLongLong = 0xFFFFFFFFFFFFFFF
+};
+
+int main()
+{
+	printf("%llx\n", Enum);
+	printf("%llx\n", EnumLongLong);
+}
+输出:
+ffffffff
+fffffffffffffff
+
+例2:
+enum class EnumClass
+{
+	EnumClass = 0
+};
+
+int main()
+{
+	EnumClass val = EnumClass::EnumClass;
+	int val2 = EnumClass::EnumClass;
+}
+编译器输出:
+error C2440: “初始化”: 无法从“EnumClass”转换为“int”
+【2020-2-17】【2】C++11 const_iterator支持insert与erase等操作
+例:
+std::vector<int> v = { 1,2,3,4,5 };
+
+auto it_insert = v.cbegin();
+for (auto it = v.cbegin(), itEnd = v.cend(); it != itEnd; ++it)
+{
+	if (*it == 3)
+	{
+		it_insert = it;
+		break;
+	}
+}
+
+it_insert = v.erase(it_insert);
+v.insert(it_insert, 30);
+
+for (auto it = v.cbegin(), itEnd = v.cend(); it != itEnd; ++it)
+{
+	printf("%d\n", *it);
+}
+输出:
+1
+2
+30
+4
+5
