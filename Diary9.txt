@@ -1,3 +1,707 @@
+【2020-01-27】C++ const 与 auto 结合使用
+auto 为 const 结合使用时候
+无论是 auto const 或者 const auto
+编译都会理解成auto const
+若auto为指针 表达意义都是 指针指向不能改变 而指针的数据是允许改变的
+若auto为引用 表达意义都是 引用数据不允许改变
+
+例1:
+int* acquire_pointer()
+{
+	return new int;
+}
+
+void release_pointer(const int* p)
+{
+	delete p;
+}
+
+int* const p = acquire_pointer();
+// const 在 * 右边
+// 指针指向数据值允许改变
+*p = 1;
+release_pointer(p);
+// const 在 * 右边
+// 指针指向不能改变
+// p = nullptr;
+
+const int* p2 = acquire_pointer();
+// const 在 * 左边
+// 指针指向数据值不允许改变
+// *p2 = 1;
+release_pointer(p2);
+// const 在 * 左边
+// 指针指向能改变
+p2 = nullptr;
+
+auto p3 = acquire_pointer();
+// auto 为 int*
+*p3 = 1;
+release_pointer(p3);
+// auto 为 int*
+p3 = nullptr;
+
+/*
+auto 为 const 结合使用时候
+如果auto表示的是指针类型 auto const 与 const auto
+均表示指针为常量 因此表达意义都是指针指向不能改变
+而指针的数据是允许改变的
+*/
+
+const auto p4 = acquire_pointer();
+// auto 为 int*
+// p4 完整类型为 int* const
+// const 在 * 右边
+// 指针指向数据值允许改变
+*p4 = 1;
+release_pointer(p4);
+// auto 为 int*
+// p4 完整类型为 int* const
+// 指针指向不能改变
+// p4 = nullptr;
+
+auto const p5 = acquire_pointer();
+// p5 类型跟 p4 完全一样
+// 指针指向数据值允许改变
+*p5 = 1;
+release_pointer(p5);
+// p5 类型跟 p4 完全一样
+// 指针指向不能改变
+// p5 = nullptr;
+
+例2:
+/*
+auto 为 const 结合使用时候
+如果auto表示的是引用类型 auto const 与 const auto
+均表示引用为常量 因此表达意义都是引用数据不允许改变
+*/
+int num = 0;
+
+{
+	// n0 与 n1 表达相同意义
+	// 类型 const int& 与 int const& 没有区别
+	int const& n0 = num;
+	const int& n1 = num;
+	// ++n0;
+	// ++n1;
+}
+
+{
+	// n0 类型为 int&
+	auto& n0 = num;
+	++n0;
+
+	auto const& n1 = num;
+	// n1被const修饰 值不允许改变
+	// n1完整类型为 int const& (与 const int& 无区别)
+	// ++n1;
+
+	const auto& n2 = num;
+	// n2被const修饰 值不允许改变
+	// n2完整类型为 const int& (与 int const& 无区别)
+	// ++n2;
+}
+
+【2020-2-12】C++ std::forward
+// https://www.jianshu.com/p/b90d1091a4ff
+// https://blog.csdn.net/coolwriter/article/details/80970718
+当我们将一个右值引用传入函数时 他在实参中有了命名 所以继续往下传或者调用其他函数时
+根据C++标准的定义 这个参数变成了一个左值 那么他永远不会调用接下来函数的右值版本
+这可能在一些情况下造成拷贝。为了解决这个问题 C++11引入了完美转发
+根据右值判断的推倒 调用forward传出的值
+若原来是一个右值 那么他转出来就是一个右值 否则为一个左值
+例:
+#include <cstdio>
+#include <algorithm>
+
+template<typename T2>
+void TemplateRefFunc(T2&& t)
+{
+	printf("rvalue reference\n");
+	t = (T2)1;
+}
+
+template<typename T2>
+void TemplateRefFunc(T2& t)
+{
+	printf("lvalue reference\n");
+	t = (T2)0;
+}
+
+template<typename T>
+void UniversalTemplateForwardFunc(T&& t)
+{
+	TemplateRefFunc(std::forward<T>(t));
+}
+
+template<typename T>
+void UniversalTemplateFunc(T&& t)
+{
+	TemplateRefFunc(t);
+}
+
+int main()
+{
+	printf("test case 1:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		int &val3 = val;
+
+		printf("val a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("val3 is a lvalue reference\n");
+
+		printf("call TemplateRefFunc(std::forward<decltype(val)>(val)): ");
+		TemplateRefFunc(std::forward<decltype(val)>(val));
+		printf("call TemplateRefFunc(std::forward<decltype(val2)>(val2)): ");
+		TemplateRefFunc(std::forward<decltype(val2)>(val2));
+		printf("call TemplateRefFunc(std::forward<decltype(val3)>(val3)): ");
+		TemplateRefFunc(std::forward<decltype(val3)>(val3));
+	}
+	printf("test case 2:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		printf("val a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("call UniversalTemplateForwardFunc(val): ");
+		UniversalTemplateForwardFunc(val);
+		printf("call UniversalTemplateForwardFunc(val2): ");
+		UniversalTemplateForwardFunc(val2);
+		printf("call UniversalTemplateForwardFunc(std::move(val2)): ");
+		UniversalTemplateForwardFunc(std::move(val2));
+	}
+	printf("test case 3:\n");
+	{
+		int val = 0;
+		int &&val2 = std::move(val);
+		printf("val is a value\n");
+		printf("val2 is a rvalue reference\n");
+		printf("call UniversalTemplateFunc(val): ");
+		UniversalTemplateFunc(val);
+		printf("call UniversalTemplateFunc(val2): ");
+		UniversalTemplateFunc(val2);
+		printf("call UniversalTemplateFunc(std::move(val2)): ");
+		UniversalTemplateFunc(std::move(val2));
+	}
+	return 0;
+}
+输出:
+test case 1:
+val a value
+val2 is a rvalue reference
+val3 is a lvalue reference
+call TemplateRefFunc(std::forward<decltype(val)>(val)): rvalue reference
+call TemplateRefFunc(std::forward<decltype(val2)>(val2)): rvalue reference
+call TemplateRefFunc(std::forward<decltype(val3)>(val3)): lvalue reference
+test case 2:
+val a value
+val2 is a rvalue reference
+call UniversalTemplateForwardFunc(val): lvalue reference
+call UniversalTemplateForwardFunc(val2): lvalue reference
+call UniversalTemplateForwardFunc(std::move(val2)): rvalue reference
+test case 3:
+val is a value
+val2 is a rvalue reference
+call UniversalTemplateFunc(val): lvalue reference
+call UniversalTemplateFunc(val2): lvalue reference
+call UniversalTemplateFunc(std::move(val2)): lvalue reference
+
+【2020-2-13】C++ 复制构造 移动构造
+1.类定义复制构造函数后 默认的移动构造函数会被删除
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(const Test& rhs)
+	{
+		printf("test lvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+运行期输出:
+test default ctor
+test lvalue ctor
+(调用到复制构造函数 因此没有调用到移动构造函数)
+
+2.类定义移动构造函数后 默认的复制构造函数会被删除
+例:
+template<typename T>
+T Call()
+{
+	T a;
+	T b(a);
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(Test&& rhs)
+	{
+		printf("test rvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+编译器输出:
+C2280	“Test::Test(const Test &)”: 尝试引用已删除的函数
+
+3.对象按值返回 会优先匹配移动构造函数
+例:
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+class Test
+{
+protected:
+public:
+	Test()
+	{
+		printf("test default ctor\n");
+	}
+	Test(const Test& rhs)
+	{
+		printf("test lvalue ctor\n");
+	}
+	Test(Test&& rhs)
+	{
+		printf("test rvalue ctor\n");
+	}
+};
+
+int main()
+{
+	Call<Test>();
+}
+
+运行期输出:
+test default ctor
+test rvalue ctor
+
+4.默认的移动构造函数和复制构造函数会对对象的成员调用其对应的移动构造或者复制构造
+例1:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+运行期输出:
+small default ctor
+big default ctor
+small rvalue ctor
+(调用到Big的默认移动构造 其实现则对对象成员同样执行移动构造)
+
+例2:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+	Big(const Big& rhs) = default;
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+运行期输出:
+small default ctor
+big default ctor
+small rvalue ctor
+(调用到Big的默认复制构造 其实现则对对象成员同样执行复制构造)
+
+【2020-2-15】【1】C++ Lambda 按值捕获静态变量实际上只是按照引用捕获
+C++ Lambda 按值捕获静态变量实际上只是按照引用捕获
+并没有生成值的拷贝
+例:
+#include <cstdio>
+
+#pragma warning(disable: 4477)
+
+int main()
+{
+	int localVal = 0;
+	static int staticVal = 0;
+	
+	printf("localVal address outside lambda: 0x%08x\n", &localVal);
+	printf("staticVal address outside lambda: 0x%08x\n", &staticVal);
+
+	auto copy = [=]()
+	{
+		printf("copy caputure\n");
+		printf("localVal address inside lambda: 0x%08x\n", &localVal);
+		printf("staticVal address inside lambda: 0x%08x\n", &staticVal);
+	};
+	copy();
+
+	auto ref = [&]()
+	{
+		printf("reference caputure\n");
+		printf("localVal address inside lambda: 0x%08x\n", &localVal);
+		printf("staticVal address inside lambda: 0x%08x\n", &staticVal);
+	};
+	ref();
+}
+输出:
+localVal address outside lambda: 0x0034f738
+staticVal address outside lambda: 0x01061404
+copy caputure
+localVal address inside lambda: 0x0034f72c
+staticVal address inside lambda: 0x01061404
+reference caputure
+localVal address inside lambda: 0x0034f738
+staticVal address inside lambda: 0x01061404
+
+【2020-2-15】【2】C++定义析构函数将会压制移动(move)成员函数的自动生成
+C++定义析构函数将会压制移动(move)成员函数的自动生成
+例:
+1.
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+输出:
+small default ctor
+big default ctor
+small rvalue ctor
+
+2.
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+class Big
+{
+protected:
+	Small small;
+public:
+	Big()
+	{
+		printf("big default ctor\n");
+	}
+	~Big() = default;
+};
+
+template<typename T>
+T Call()
+{
+	T a;
+	return a;
+}
+
+int main()
+{
+	Call<Big>();
+}
+输出:
+small default ctor
+big default ctor
+small lvalue ctor
+【2020-2-15】【3】C++返回值优化会对函数按值传递形参和函数局部变量优先调用移动构造函数
+C++返回值优化会对函数按值传递形参和函数局部变量优先调用移动构造函数(按引用传递形参
+依旧需要转换为右值引用才能获得移动优化)
+除非调用std::remove_reference或类似手法压制该优化
+
+例1:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+template<typename T>
+T CallNORVO(T val)
+{
+	return static_cast<std::remove_reference<T>::type>(val);
+}
+
+template<typename T>
+T CallRVO(T val)
+{
+	return val;
+}
+
+int main()
+{
+	printf("Call suppress RVO\n");
+	CallNORVO(Small());
+	printf("Call dont't suppress RVO\n");
+	CallRVO(Small());
+}
+输出:
+Call suppress RVO
+small default ctor
+small lvalue ctor
+Call dont't suppress RVO
+small default ctor
+small rvalue ctor
+
+例2:
+class Small
+{
+protected:
+public:
+	Small()
+	{
+		printf("small default ctor\n");
+	}
+	Small(const Small& rhs)
+	{
+		printf("small lvalue ctor\n");
+	}
+	Small(Small&& rhs)
+	{
+		printf("small rvalue ctor\n");
+	}
+};
+
+template<typename T>
+T CallRef(T& val)
+{
+	return val;
+}
+
+template<typename T>
+T CallMoveRef(T& val)
+{
+	return std::move(val);
+}
+
+int main()
+{
+	printf("Call pass paramters by reference\n");
+	CallRef(Small());
+	printf("Call pass paramters by reference and move when return\n");
+	CallMoveRef(Small());
+}
+输出:
+Call pass paramters by reference
+small default ctor
+small lvalue ctor
+Call pass paramters by reference and move when return
+small default ctor
+small rvalue ctor
+
+【2020-2-17】【1】C++ 枚举类
+1.枚举类默认定义底层类型为int
+2.普通枚举规则上应该按照枚举成员推导底层类型 但VC上测试都为int
+3.枚举类枚举成员不支持隐式转型
+例1:
+enum Enum
+{
+	Enum = 0xFFFFFFFFFFFFFFF
+};
+
+enum EnumLongLong : long long
+{
+	EnumLongLong = 0xFFFFFFFFFFFFFFF
+};
+
+int main()
+{
+	printf("%llx\n", Enum);
+	printf("%llx\n", EnumLongLong);
+}
+输出:
+ffffffff
+fffffffffffffff
+
+例2:
+enum class EnumClass
+{
+	EnumClass = 0
+};
+
+int main()
+{
+	EnumClass val = EnumClass::EnumClass;
+	int val2 = EnumClass::EnumClass;
+}
+编译器输出:
+error C2440: “初始化”: 无法从“EnumClass”转换为“int”
+【2020-2-17】【2】C++11 const_iterator支持insert与erase等操作
+例:
+std::vector<int> v = { 1,2,3,4,5 };
+
+auto it_insert = v.cbegin();
+for (auto it = v.cbegin(), itEnd = v.cend(); it != itEnd; ++it)
+{
+	if (*it == 3)
+	{
+		it_insert = it;
+		break;
+	}
+}
+
+it_insert = v.erase(it_insert);
+v.insert(it_insert, 30);
+
+for (auto it = v.cbegin(), itEnd = v.cend(); it != itEnd; ++it)
+{
+	printf("%d\n", *it);
+}
+输出:
+1
+2
+30
+4
+5
+
 【2020-05-11】SVN外部链接
 可以使用svn:externals设置外部链接
 解决svn管理目录下设置软链接目录导致svn错乱问题

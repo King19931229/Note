@@ -178,8 +178,10 @@ int add(int a, int b)
 {
     return a + b;
 }
-IDE提示出错-->默认约定是__cdecl
-主要如果使用__stdcall要保证声明与实现都有__stdcall标志
+如果编译器提示出错默认约定是__stdcall
+由于没有出错提示 因此默认约定是__cdecl
+
+注意如果使用__stdcall要保证声明与实现都有__stdcall标志
 还有约定函数指针时也要注意匹配
 
 【2017-09-26】C++ inl文件
@@ -342,6 +344,7 @@ for root, dirs, files in os.walk(filePathSrc):
         if fn[-4:] == '.cpp':
             notepad.open(root + "\\" + fn) 
             notepad.runMenuCommand("Encoding", "Convert to UTF-8")
+			notepad.runMenuCommand("Edit", "EOL Conversion")
             notepad.save()
             notepad.close()
         elif fn[-2:] == '.c':
