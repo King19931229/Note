@@ -1,0 +1,13 @@
+【2020-05-11】SVN外部链接
+可以使用svn:externals设置外部链接
+解决svn管理目录下设置软链接目录导致svn错乱问题
+首先写入一个文件 里面配置url路径与链接路径
+然后执行svn propset svn:externals . -F 对应文件名
+(如果不把路径配置在一个外部文件svn propset svn:externals命令会始终失败)
+例:
+svn.txt:
+url folder
+url2 folder2
+
+cmd:
+svn propset svn:externals . -F svn.txt
