@@ -715,3 +715,14 @@ url2 folder2
 
 cmd:
 svn propset svn:externals . -F svn.txt
+
+【2020-07-27】【1】Android Studio BuildVariants
+// https://developer.android.com/studio/build/build-variants
+可以通过build.gradle添加配置项
+在Android Studio里通过View->ToolWindows->Build Variants打开配置窗口
+
+【2020-07-27】【2】Android Studio断点无效问题
+Android Studio使用Strip过的so调试可能会导致断点无效
+通过Run->Edit Configurations里的Debugger的Symbol Directories添加
+对应没有strip过的so文件路径解决
+..\app\build\intermediates\cmake\debug\obj
