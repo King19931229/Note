@@ -845,6 +845,42 @@ test_call 10
 【2020-12-31】【3】setjmp与longjmp配合使用可以模拟异常
 // http://groups.di.unipi.it/~nids/docs/longjump_try_trow_catch.html
 
+/* For the full documentation and explanation of the code below, please refer to
+ * http://www.di.unipi.it/~nids/docs/longjump_try_trow_catch.html
+ * See also DuffsDevice
+ * http://www.catb.org/jargon/html/D/Duffs-device.html
+jmp_buf env;
+do
+{
+	switch (setjmp(env))
+	{
+		case 0: while(1){
+		{
+			printf("do stuff\n");
+			longjmp(env, 2);
+		}
+
+		break;
+		case 1:
+		{
+			printf("exception 1\n");
+		}
+
+		break;
+		case 2:
+		{
+			printf("exception 2\n");
+		}
+
+		break;
+		} default: {
+		{
+			printf("final");
+		}
+		break;
+	}}
+} while (0);
+ */
 #define TRY do { jmp_buf ex_buf__; switch( setjmp(ex_buf__) ) { case 0: while(1) {
 #define CATCH(x) break; case x:
 #define FINALLY break; } default: {
