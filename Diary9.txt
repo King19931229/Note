@@ -908,3 +908,142 @@ ETRY;
 do stuff
 DEFAULT_ERROR
 final
+
+【2021-01-05】ClangAST
+ClangAST是一个能够获取C/C++抽象语法树的工具
+// https://www.cnblogs.com/zhangke007/p/4714245.html
+// https://blog.csdn.net/qq_23599965/article/details/94595735
+能够使用下面命令Dump出一个源文件的AST
+clang -Xclang -ast-dump -fsyntax-only hello.cpp
+也可以使用libclang打印出AST
+例:
+hello.cpp
+struct C
+{
+	int c;
+};
+
+struct B
+{
+	int b;
+	C c;
+};
+
+struct A
+{
+	int a;
+	B b;
+};
+
+/////////////////////////////////////////////
+#include <stdio.h>
+#include <stdbool.h>
+#include <fcntl.h>
+#include <string>
+#include <cstdio>
+#include "clang-c/Index.h"
+
+#define DEPTH_SPACE 8
+
+bool printPrefix(int depth)
+{
+	for (int i = 0; i < depth * DEPTH_SPACE; ++i)
+	{
+		printf(" ");
+	}
+	for (int i = 0; i < depth; ++i)
+	{
+		printf("|");
+		if (i == depth - 1)
+		{
+			printf(" ");
+		}
+	}
+	return true;
+}
+
+bool printCursor(CXCursor cursor, int depth)
+{
+	printPrefix(depth);
+
+	enum CXCursorKind curKind = clang_getCursorKind(cursor);
+	const char* curkindSpelling = clang_getCString(clang_getCursorKindSpelling(curKind));
+	const char* astSpelling = clang_getCString(clang_getCursorSpelling(cursor));
+
+	printf("%s ", curkindSpelling);
+
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXSourceLocation startLocation = clang_getRangeStart(range);
+	CXSourceLocation endLocation = clang_getRangeEnd(range);
+
+	CXFile file;
+	unsigned int line, column, offset;
+	clang_getInstantiationLocation(startLocation, &file, &line, &column, &offset);
+	printf("<line:%u column:%u", line, column);
+
+	printf(", ");
+
+	clang_getInstantiationLocation(endLocation, &file, &line, &column, &offset);
+	printf("line:%u column:%u>", line, column);
+
+	printf(" %s ", astSpelling);
+
+	puts("");
+
+	return true;
+}
+
+enum CXChildVisitResult printVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
+{
+	const char* astSpelling = clang_getCString(clang_getCursorSpelling(cursor));
+	int depth = *(int*)client_data;
+	printCursor(cursor, depth);
+	depth += 1;
+	clang_visitChildren(cursor, printVisitor, &depth);
+	return CXChildVisit_Continue;
+}
+
+int main(int argc, char* argv[])
+{
+	if (argc != 2)
+	{
+		printf("You input wrong number arguments!\n");
+		return -1;
+	}
+
+	{
+		FILE* result = NULL;
+		fopen_s(&result, argv[1], "rb");
+		if (result == NULL)
+		{
+			printf("Can't open the file: %s.\n", argv[1]);
+			return -1;
+		}
+	}
+
+	CXIndex Index = clang_createIndex(0, 0);
+	CXTranslationUnit TU = clang_parseTranslationUnit(Index, 0, argv, argc,
+		0, 0,
+		CXTranslationUnit_None);
+	CXCursor C = clang_getTranslationUnitCursor(TU);
+
+	int depth = 0;
+	printVisitor(C, clang_getNullCursor(), &depth);
+
+	clang_disposeTranslationUnit(TU);
+	clang_disposeIndex(Index);
+	return 0;
+}
+
+输出:
+ranslationUnit <line:1 column:1, line:1013 column:6> f:\llvm-project\make\Release\bin\hello.cpp
+        | StructDecl <line:9 column:1, line:12 column:2> C
+                || FieldDecl <line:11 column:2, line:11 column:7> c
+        | StructDecl <line:14 column:1, line:18 column:2> B
+                || FieldDecl <line:16 column:2, line:16 column:7> b
+                || FieldDecl <line:17 column:2, line:17 column:5> c
+                        ||| TypeRef <line:17 column:2, line:17 column:3> struct C
+        | StructDecl <line:20 column:1, line:24 column:2> A
+                || FieldDecl <line:22 column:2, line:22 column:7> a
+                || FieldDecl <line:23 column:2, line:23 column:5> b
+                        ||| TypeRef <line:23 column:2, line:23 column:3> struct B
