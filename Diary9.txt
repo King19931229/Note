@@ -1047,3 +1047,9 @@ ranslationUnit <line:1 column:1, line:1013 column:6> f:\llvm-project\make\Releas
                 || FieldDecl <line:22 column:2, line:22 column:7> a
                 || FieldDecl <line:23 column:2, line:23 column:5> b
                         ||| TypeRef <line:23 column:2, line:23 column:3> struct B
+
+【2021-05-21】git不同分支合并提交
+1.在A仓库使用git diff 把两个版本号之间的差异dump一个patch文件里
+git diff 16214d32 f6a3e860 > my.patch
+2.在B仓库使用git apply --reject my.path应用差异
+参考: https://gist.github.com/nepsilon/22bc62a23f785716705c
