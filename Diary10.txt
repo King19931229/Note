@@ -1,0 +1,80 @@
+【2022-03-30】UE4 Profile内存
+1.Stat方法
+先输入命令stat startfile 引擎会开始收集每帧的stat数据
+然后输入命令stat stopfile 引擎会录制出对应csv文件到目录Saved/Profiling/UnrealStats/里
+使用Session Frontend工具加载对应.ue4stats 勾上对应MemoryProfile项能够显示每帧记录的相关内存信息
+2.LLM方法
+简单来说就是启动时候加上 -LLM -LLMCSV参数
+对于Android 启动参数添加方法是往包体储存路径上放置UE4CommandLine.txt
+adb.exe push UE4CommandLine.txt /mnt/sdcard/UE4Game/Project/UE4CommandLine.txt
+adb.exe push UE4CommandLine.txt /storage/emulated/0/Android/data/com.netease.bfc1game.mainland/files/UE4Game/Project/UE4CommandLine.txt
+运行时可以直接输入命令stat LLM
+运行后可以在Profiling/LLM找到录制的CSV通过PerfreportTool转化为图表
+PerfreportTool.exe -csv LLM_Pid30872_2022.03.08-10.13.03.csv -o h:\LLMOutput -reporttype LLM -topng. -graphxml LLMReportGraphs.xml -reportxml LLMReportTypes.xml -nostripevents
+PerfreportTool.exe -csv LLMPlatform_Pid30872_2022.03.08-10.13.03.csv -o h:\LLMOutput -reporttype LLM -topng. -graphxml LLMReportGraphs.xml -reportxml LLMReportTypes.xml -nostripevents
+图表里显示的Total的值是利用系统接口获取到物理内存值(其实会减去LLM自己的内存占用) 在PC上是Working Set(包含Private与Shared的) Android上是是RSS
+其他除了Untracked的部分都是LLMTracker在每次分配释放时候统计好的，Untracked则是用Total减去其他所有计算出来的值
+还有个-LLMTAGSETS加上后(需要加上宏LLM_ALLOW_ASSETS_TAGS)可以查看各个资源的内存使用情况(但是没有办法配合CSVTool转化为图标形式，很鸡肋)
+具体可以看https://zhuanlan.zhihu.com/p/78005333 https://www.cnblogs.com/kekec/p/14593345.html
+这个统计能够看到每个分类的内存使用情况，很实用
+3.memreport -full方法
+刚刚提到有需要看各个资源分配的情况 这个时候最好就是用memreport -full方法 结果在Profiling/MemReports里找到
+里面会排序好所有资产的内存占用 很实用
+
+【2022-03-30】Android Profile内存
+adb shell方法
+先提一些基本概念
+VSS - Virtual Set Size 虚拟耗用内存（包含共享库占用的内存）
+RSS - Resident Set Size 实际使用物理内存（包含共享库占用的内存）
+PSS - Proportional Set Size 实际使用的物理内存（比例分配共享库占用的内存）
+USS - Unique Set Size 进程独自占用的物理内存（不包含共享库占用的内存）
+VSS >= RSS >= PSS >= USS
+
+查看对应进程线程数
+adb shell ps -T -p <pid>
+
+查看内存信息
+adb shell dumpsys meminfo
+
+显示当前进程进程的状态
+adb shell cat /proc/PID/status
+
+显示当前进程各虚拟地址段的属性
+adb shell cat /proc/PID/maps
+以及查看详细信息
+adb shell cat /proc/PID/smaps
+adb shell run-as com.*.* cat /proc/PID/smaps
+
+显示进程内存的详细情况
+pmap 进程ID
+pmap 命令查看虚存大小和分布 ROOT机器才能查看
+adb shell pmap PID -x
+adb shell run-as com.*.* pmap PID -x
+
+一些使用技巧
+adb shell run-as com.*.* pmap PID -x > *.csv
+可以把虚存的使用情况输出到csv里
+打开后直接重新按空格分列即可 
+
+pmap统计出来的PSS可能会比实际的小对比于dumpsys meminfo PID的结果 所以要特别留意对应机型是否存在这个差异
+VSS没差
+参考:
+https://blog.csdn.net/shulianghan/article/details/120854980
+https://blog.csdn.net/beckdon/article/details/48491909
+https://www.cnblogs.com/arnoldlu/p/10272466.html
+https://www.cnblogs.com/arnoldlu/p/8568330.html#maps
+
+【2022-03-30】Android ASAN排查内存问题
+Android可以开启ASAN排查内存问题 需要在编译时加上ASAN对应编译选项 APK包体内也需要拷贝对应的so以及wrap.sh文件
+之后根据报错地址用addr2line找到对应函数
+aarch64-linux-android-addr2line -C -f -e libUE4.so 0x00714a04c480
+对于内存断点 AndroidStudio不支持直接通过UI给ARM设置watchpoint
+但是可以通过LLDB设置watchpoint实现
+w s e -s 8 -- 0x00000043331f0a90
+watchpoint set expression -s 8 -- 0x00000049578f3658
+参考:
+// https://zhuanlan.zhihu.com/p/382994002
+// https://zhuanlan.zhihu.com/p/474406153
+// https://blog.51cto.com/u_15315240/3226762
+// https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html
+// https://github.com/google/sanitizers/wiki/AddressSanitizer
