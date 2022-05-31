@@ -78,3 +78,10 @@ watchpoint set expression -s 8 -- 0x00000049578f3658
 // https://blog.51cto.com/u_15315240/3226762
 // https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html
 // https://github.com/google/sanitizers/wiki/AddressSanitizer
+
+【2022-05-27】排查.lib信息
+1.dumpbin /symbols *.lib > *.txt
+C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual Studio Tools\Developer Command Prompt for VS 2022
+2.直接用7Zip打开.lib文件
+参考:
+https://stackoverflow.com/questions/305287/how-to-see-the-contents-of-windows-library-lib
