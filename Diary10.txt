@@ -85,3 +85,30 @@ C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual S
 2.直接用7Zip打开.lib文件
 参考:
 https://stackoverflow.com/questions/305287/how-to-see-the-contents-of-windows-library-lib
+
+【2022-06-23】排查.a信息
+c:\Andriod\SDK\ndk-bundle\toolchains\aarch64-linux-android-4.9\prebuilt\windows-x86_64\aarch64-linux-android\bin\
+nm命令
+nm -u libacsdk_helper.a
+参考:
+https://linux.die.net/man/1/nm
+
+【2022-08-03】Android Game Development Extension
+https://developer.android.com/games/agde
+一个能够在VS上方便调试Android的工具
+
+【2022-10-09】自定义VS Solution Configurations长度
+Tools->Customize->Commands->Toolbar->Standard->Solution Configurations
+
+【2023-02-07】自定义UE的VS版本
+定位到BuildConfiguration.xml
+添加
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration xmlns="https://www.unrealengine.com/BuildConfiguration">
+<VCProjectFileGenerator>
+    <Version>VisualStudio2022</Version>
+</VCProjectFileGenerator>
+<WindowsPlatform>
+    <Compiler>VisualStudio2022</Compiler>
+</WindowsPlatform>
+</Configuration>
