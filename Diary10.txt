@@ -112,3 +112,61 @@ Tools->Customize->Commands->Toolbar->Standard->Solution Configurations
     <Compiler>VisualStudio2022</Compiler>
 </WindowsPlatform>
 </Configuration>
+
+【2023-02-22】一些宏使用技巧
+在一个inl里使用宏XXX(A, B) 宏这个时候没有被定义
+在其他文件里引用这个inl 不同cpp引用这个inl之前各自定义自己的宏XXX
+这样一个宏可以多用
+例:
+.inl:
+REGISTER_NAME(1,ByteProperty)
+REGISTER_NAME(2,IntProperty)
+REGISTER_NAME(3,BoolProperty)
+
+cpp1:
+const TCHAR* LexToString(EName Ename)
+{
+	switch (Ename)
+	{
+#define REGISTER_NAME(num,namestr) case num: return TEXT(#namestr);
+		#include "UObject/UnrealNames.inl"
+#undef REGISTER_NAME
+		default:
+		return TEXT("*INVALID*");
+	}
+}
+
+h2:
+// Define a message as an enumeration.
+#define REGISTER_NAME(num,name) NAME_##name = num,
+enum EName
+{
+	// Include all the hard-coded names
+	#include "UnrealNames.inl"
+	```
+	// Special constant for the last hard-coded name index
+	NAME_MaxHardcodedNameIndex,
+	```
+};
+#undef REGISTER_NAME
+参考:
+UE4 UnrealNames.h
+
+【2023-09-10】SimpPerf使用
+定位到simpleperf目录
+如:AndroidSDK/ndk/21.1.6352462/simpleperf/
+执行以下脚本
+python app_profiler.py -p com.*.* -lib g:\Client_dev20230629\Intermediate\Android\arm64\jni\arm64-v8a
+python report_html.py -i perf.data
+或者用AndroidStudio的Profile功能
+参考:
+https://android.googlesource.com/platform/prebuilts/simpleperf/+/refs/heads/ndk-r13-release/README.md
+https://android.googlesource.com/platform/system/extras/+/master/simpleperf/doc/README.md
+
+【2023-09-10】meminfo使用
+dumpsys meminfo com.example.app
+pm list packages | grep "Example App"
+ps | grep com.example.app
+adb shell dumpsys meminfo
+参考:
+ChatGPT
